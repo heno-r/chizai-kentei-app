@@ -4,6 +4,14 @@
     const SUPABASE_BROWSER_SDK_URL = "https://esm.sh/@supabase/supabase-js@2";
     const authMode = runtimeConfig.authMode || "local_stub";
     let supabaseClientPromise = null;
+    class PublicAuthError extends Error {
+        constructor(message, status, retryAfterSeconds) {
+            super(message);
+            this.name = "PublicAuthError";
+            this.status = status;
+            this.retryAfterSeconds = retryAfterSeconds;
+        }
+    }
     function isSupabaseConfigured() {
         return Boolean(runtimeConfig.supabaseUrl && runtimeConfig.supabasePublishableKey);
     }
@@ -29,6 +37,27 @@
     function buildApiUrl(path) {
         const baseUrl = (runtimeConfig.secureApiBaseUrl || "").replace(/\/+$/, "");
         return baseUrl ? `${baseUrl}${path}` : path;
+    }
+    async function postPublicAuth(path, payload) {
+        const response = await fetch(buildApiUrl(path), {
+            method: "POST",
+            headers: {
+                "content-type": "application/json",
+            },
+            cache: "no-store",
+            body: JSON.stringify(payload),
+        });
+        let body = {};
+        try {
+            body = await response.json();
+        }
+        catch {
+            body = {};
+        }
+        if (!response.ok) {
+            throw new PublicAuthError(String(body?.error || "ログイン処理に失敗しました。"), response.status, Number.isFinite(Number(body?.retry_after_seconds)) ? Number(body.retry_after_seconds) : undefined);
+        }
+        return body;
     }
     function isLocalHostRuntime() {
         if (typeof window === "undefined" || !window.location?.hostname) {
@@ -144,6 +173,22 @@
             return session?.access_token || null;
         }
         return readSession()?.access_token || null;
+    }
+    async function applySupabaseSession(sessionPayload) {
+        if (authMode !== "supabase" || !sessionPayload?.access_token || !sessionPayload?.refresh_token) {
+            return;
+        }
+        const client = await getSupabaseClient();
+        if (!client) {
+            throw new Error("supabase client unavailable");
+        }
+        const { error } = await client.auth.setSession({
+            access_token: sessionPayload.access_token,
+            refresh_token: sessionPayload.refresh_token,
+        });
+        if (error) {
+            throw error;
+        }
     }
     async function buildSupabaseSignedInFallback(source = "secure_api_unavailable") {
         const client = await getSupabaseClient();
@@ -295,36 +340,25 @@
         if (authMode !== "supabase") {
             throw new Error("sign up is only available in supabase mode");
         }
-        const client = await getSupabaseClient();
-        if (!client) {
-            throw new Error("supabase client unavailable");
-        }
-        const { data, error } = await client.auth.signUp({
+        const result = await postPublicAuth("/api/public/auth/signup", {
             email,
             password,
-            options: {
-                emailRedirectTo: `${window.location.origin}${runtimeConfig.loginPath || "/login/"}`,
-            },
         });
-        if (error) {
-            throw error;
+        if (result?.session) {
+            await applySupabaseSession(result.session);
         }
-        return data;
+        return result;
     }
     async function signInWithEmailPassword(email, password) {
         if (authMode !== "supabase") {
             throw new Error("email sign in is only available in supabase mode");
         }
-        const client = await getSupabaseClient();
-        if (!client) {
-            throw new Error("supabase client unavailable");
-        }
-        const { error } = await client.auth.signInWithPassword({
+        const result = await postPublicAuth("/api/public/auth/signin", {
             email,
             password,
         });
-        if (error) {
-            throw error;
+        if (result?.session) {
+            await applySupabaseSession(result.session);
         }
         return ensureSignedInStatusAfterAuth("supabase_signin_completed");
     }

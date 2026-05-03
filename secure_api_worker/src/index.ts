@@ -126,6 +126,28 @@ interface ContactRequestPayload {
   source_page?: string;
 }
 
+interface AuthCredentialPayload {
+  email?: string;
+  password?: string;
+}
+
+interface AuthAttemptBucket {
+  bucket_key: string;
+  action: string;
+  attempt_count: number;
+  blocked_until: string | null;
+  last_attempt_at: string;
+}
+
+interface AuthRateLimitPolicy {
+  action: "signin" | "signup";
+  windowMinutes: number;
+  blockMinutes: number;
+  maxAttemptsPerIp: number;
+  maxAttemptsPerEmail: number;
+  maxAttemptsPerIpEmail: number;
+}
+
 const DEFAULT_UNLOCKED_FEATURES = [
   "category_mode",
   "retry_wrong",
@@ -136,6 +158,27 @@ const DEFAULT_UNLOCKED_FEATURES = [
   "study_plan",
   "detailed_history",
 ];
+
+const AUTH_MIN_PASSWORD_LENGTH = 10;
+const AUTH_MIN_RESPONSE_MS = 900;
+
+const SIGNIN_RATE_LIMIT_POLICY: AuthRateLimitPolicy = {
+  action: "signin",
+  windowMinutes: 15,
+  blockMinutes: 30,
+  maxAttemptsPerIp: 20,
+  maxAttemptsPerEmail: 8,
+  maxAttemptsPerIpEmail: 5,
+};
+
+const SIGNUP_RATE_LIMIT_POLICY: AuthRateLimitPolicy = {
+  action: "signup",
+  windowMinutes: 30,
+  blockMinutes: 60,
+  maxAttemptsPerIp: 10,
+  maxAttemptsPerEmail: 4,
+  maxAttemptsPerIpEmail: 3,
+};
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -164,6 +207,109 @@ export default {
           ok: true,
           service: "secure_api_worker",
           timestamp: new Date().toISOString(),
+        });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/public/auth/signin") {
+        const startedAt = Date.now();
+        const payload = (await request.json()) as AuthCredentialPayload;
+        const email = normalizeEmail(String(payload?.email || ""));
+        const password = String(payload?.password || "");
+
+        if (!isValidEmail(email) || !password) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(request, { error: "入力内容を確認して、もう一度お試しください。" }, 400);
+        }
+
+        const limiterResponse = await consumeAuthAttempt(env, request, SIGNIN_RATE_LIMIT_POLICY, email);
+        if (limiterResponse) {
+          await ensureMinimumResponseDuration(startedAt);
+          return limiterResponse;
+        }
+
+        const supabaseResponse = await postSupabaseAuthJson(env, "/auth/v1/token?grant_type=password", {
+          email,
+          password,
+        });
+
+        if (!supabaseResponse.ok) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(
+            request,
+            { error: "メールアドレスまたはパスワードを確認して、しばらくしてからもう一度お試しください。" },
+            401,
+          );
+        }
+
+        const sessionPayload = (await supabaseResponse.json()) as Record<string, unknown>;
+        await clearAuthAttempts(env, request, SIGNIN_RATE_LIMIT_POLICY, email);
+        await ensureMinimumResponseDuration(startedAt);
+        return jsonResponse(request, {
+          ok: true,
+          session: buildSupabaseSessionPayload(sessionPayload),
+          user: buildSupabaseUserPayload(sessionPayload),
+        });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/public/auth/signup") {
+        const startedAt = Date.now();
+        const payload = (await request.json()) as AuthCredentialPayload;
+        const email = normalizeEmail(String(payload?.email || ""));
+        const password = String(payload?.password || "");
+        const passwordError = validatePasswordForSignup(password);
+
+        if (!isValidEmail(email)) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(request, { error: "入力内容を確認して、もう一度お試しください。" }, 400);
+        }
+        if (passwordError) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(request, { error: passwordError }, 400);
+        }
+
+        const limiterResponse = await consumeAuthAttempt(env, request, SIGNUP_RATE_LIMIT_POLICY, email);
+        if (limiterResponse) {
+          await ensureMinimumResponseDuration(startedAt);
+          return limiterResponse;
+        }
+
+        const redirectTo = buildLoginReturnUrl(request, env);
+        const supabaseResponse = await postSupabaseAuthJson(env, "/auth/v1/signup", {
+          email,
+          password,
+          email_redirect_to: redirectTo,
+        });
+
+        const payloadJson = await safeReadJsonRecord(supabaseResponse);
+        if (!supabaseResponse.ok) {
+          const message = String(payloadJson?.msg || payloadJson?.error_description || payloadJson?.error || "");
+          if (isExistingAccountSignupResponse(message)) {
+            await ensureMinimumResponseDuration(startedAt);
+            return jsonResponse(request, {
+              ok: true,
+              accepted: true,
+              needs_confirmation: true,
+            });
+          }
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(
+            request,
+            { error: "アカウント作成を受け付けられませんでした。時間をおいてもう一度お試しください。" },
+            400,
+          );
+        }
+
+        const hasSession = Boolean(payloadJson?.access_token && payloadJson?.refresh_token);
+        if (hasSession) {
+          await clearAuthAttempts(env, request, SIGNUP_RATE_LIMIT_POLICY, email);
+        }
+        await ensureMinimumResponseDuration(startedAt);
+        return jsonResponse(request, {
+          ok: true,
+          accepted: true,
+          needs_confirmation: !hasSession,
+          session: hasSession ? buildSupabaseSessionPayload(payloadJson) : null,
+          user: hasSession ? buildSupabaseUserPayload(payloadJson) : null,
         });
       }
 
@@ -220,7 +366,7 @@ export default {
           return jsonResponse(request, { error: "status must be one of new, in_progress, done" }, 400);
         }
 
-        const updateResult = await env.LICENSE_DB.prepare(
+        const updateResult = (await env.LICENSE_DB.prepare(
           `
           UPDATE contact_messages
           SET status = ?, updated_at = datetime('now')
@@ -228,7 +374,7 @@ export default {
           `,
         )
           .bind(status, messageId)
-          .run();
+          .run()) as { meta?: { changes?: number } };
 
         const changed = Number(updateResult.meta?.changes ?? 0);
         if (changed < 1) {
@@ -584,8 +730,251 @@ function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function validatePasswordForSignup(password: string): string | null {
+  if (password.length < AUTH_MIN_PASSWORD_LENGTH) {
+    return `パスワードは${AUTH_MIN_PASSWORD_LENGTH}文字以上で設定してください。`;
+  }
+  if (password.length > 200) {
+    return "パスワードが長すぎます。200文字以内で入力してください。";
+  }
+  return null;
+}
+
 function isPurchaseEnabled(env: Env): boolean {
   return !["0", "false", "off"].includes(String(env.PURCHASE_ENABLED || "true").toLowerCase());
+}
+
+async function ensureAuthAttemptTable(env: Env): Promise<void> {
+  await env.LICENSE_DB.prepare(
+    `
+    CREATE TABLE IF NOT EXISTS auth_attempt_buckets (
+      bucket_key TEXT PRIMARY KEY,
+      action TEXT NOT NULL,
+      attempt_count INTEGER NOT NULL,
+      blocked_until TEXT,
+      last_attempt_at TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+    `,
+  ).run();
+  await env.LICENSE_DB.prepare(
+    `
+    CREATE INDEX IF NOT EXISTS idx_auth_attempt_buckets_action_updated
+      ON auth_attempt_buckets(action, updated_at DESC)
+    `,
+  ).run();
+}
+
+async function consumeAuthAttempt(
+  env: Env,
+  request: Request,
+  policy: AuthRateLimitPolicy,
+  email: string,
+): Promise<Response | null> {
+  await ensureAuthAttemptTable(env);
+
+  const clientIp = getClientIpAddress(request);
+  const now = new Date();
+  const bucketDefinitions = [
+    {
+      bucketKey: `${policy.action}:ip:${clientIp}`,
+      limit: policy.maxAttemptsPerIp,
+    },
+    {
+      bucketKey: `${policy.action}:email:${email}`,
+      limit: policy.maxAttemptsPerEmail,
+    },
+    {
+      bucketKey: `${policy.action}:ip-email:${clientIp}:${email}`,
+      limit: policy.maxAttemptsPerIpEmail,
+    },
+  ];
+
+  for (const definition of bucketDefinitions) {
+    const existing = await env.LICENSE_DB.prepare(
+      `
+      SELECT bucket_key, action, attempt_count, blocked_until, last_attempt_at
+      FROM auth_attempt_buckets
+      WHERE bucket_key = ?
+      LIMIT 1
+      `,
+    )
+      .bind(definition.bucketKey)
+      .first<AuthAttemptBucket>();
+
+    const blockedUntil = parseStoredDate(existing?.blocked_until);
+    if (blockedUntil && blockedUntil.getTime() > now.getTime()) {
+      const retryAfterSeconds = Math.max(1, Math.ceil((blockedUntil.getTime() - now.getTime()) / 1000));
+      return jsonResponse(
+        request,
+        {
+          error: "試行回数が多いため、しばらく待ってからもう一度お試しください。",
+          retry_after_seconds: retryAfterSeconds,
+        },
+        429,
+      );
+    }
+
+    const lastAttemptAt = parseStoredDate(existing?.last_attempt_at);
+    const withinWindow =
+      lastAttemptAt && now.getTime() - lastAttemptAt.getTime() <= policy.windowMinutes * 60 * 1000;
+    const nextCount = withinWindow ? Number(existing?.attempt_count || 0) + 1 : 1;
+    const nextBlockedUntil =
+      nextCount > definition.limit
+        ? new Date(now.getTime() + policy.blockMinutes * 60 * 1000).toISOString()
+        : null;
+
+    await env.LICENSE_DB.prepare(
+      `
+      INSERT INTO auth_attempt_buckets (
+        bucket_key, action, attempt_count, blocked_until, last_attempt_at, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(bucket_key) DO UPDATE SET
+        attempt_count = excluded.attempt_count,
+        blocked_until = excluded.blocked_until,
+        last_attempt_at = excluded.last_attempt_at,
+        updated_at = excluded.updated_at
+      `,
+    )
+      .bind(
+        definition.bucketKey,
+        policy.action,
+        nextCount,
+        nextBlockedUntil,
+        now.toISOString(),
+        existing?.last_attempt_at ? existing.last_attempt_at : now.toISOString(),
+        now.toISOString(),
+      )
+      .run();
+
+    if (nextBlockedUntil) {
+      return jsonResponse(
+        request,
+        {
+          error: "試行回数が多いため、しばらく待ってからもう一度お試しください。",
+          retry_after_seconds: policy.blockMinutes * 60,
+        },
+        429,
+      );
+    }
+  }
+
+  return null;
+}
+
+async function clearAuthAttempts(
+  env: Env,
+  request: Request,
+  policy: AuthRateLimitPolicy,
+  email: string,
+): Promise<void> {
+  await ensureAuthAttemptTable(env);
+  const clientIp = getClientIpAddress(request);
+  await env.LICENSE_DB.prepare(
+    `
+    DELETE FROM auth_attempt_buckets
+    WHERE bucket_key IN (?, ?, ?)
+    `,
+  )
+    .bind(
+      `${policy.action}:ip:${clientIp}`,
+      `${policy.action}:email:${email}`,
+      `${policy.action}:ip-email:${clientIp}:${email}`,
+    )
+    .run();
+}
+
+function getClientIpAddress(request: Request): string {
+  const direct = (request.headers.get("cf-connecting-ip") || "").trim();
+  if (direct) {
+    return direct;
+  }
+
+  const forwarded = (request.headers.get("x-forwarded-for") || "").split(",")[0]?.trim();
+  if (forwarded) {
+    return forwarded;
+  }
+
+  return "unknown";
+}
+
+function parseStoredDate(value?: string | null): Date | null {
+  if (!value) {
+    return null;
+  }
+  const normalized = value.includes("T") ? value : value.replace(" ", "T");
+  const withZone = /Z$|[+-]\d{2}:\d{2}$/.test(normalized) ? normalized : `${normalized}Z`;
+  const parsed = new Date(withZone);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+async function ensureMinimumResponseDuration(startedAt: number, minMs = AUTH_MIN_RESPONSE_MS): Promise<void> {
+  const elapsed = Date.now() - startedAt;
+  if (elapsed >= minMs) {
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, minMs - elapsed));
+}
+
+async function postSupabaseAuthJson(
+  env: Env,
+  path: string,
+  payload: Record<string, unknown>,
+): Promise<Response> {
+  if (!env.SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error("SUPABASE_PUBLISHABLE_KEY is not configured");
+  }
+
+  return fetch(`${env.SUPABASE_PROJECT_URL.replace(/\/$/, "")}${path}`, {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_PUBLISHABLE_KEY,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function safeReadJsonRecord(response: Response): Promise<Record<string, unknown>> {
+  try {
+    return (await response.json()) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function buildSupabaseSessionPayload(payload: Record<string, unknown>): Record<string, unknown> {
+  return {
+    access_token: payload.access_token || null,
+    refresh_token: payload.refresh_token || null,
+    expires_in: payload.expires_in || null,
+    expires_at: payload.expires_at || null,
+    token_type: payload.token_type || "bearer",
+  };
+}
+
+function buildSupabaseUserPayload(payload: Record<string, unknown>): Record<string, unknown> | null {
+  const directUser = payload.user as Record<string, unknown> | undefined;
+  const session = payload.session as { user?: Record<string, unknown> } | undefined;
+  const user = directUser || session?.user;
+  return user || null;
+}
+
+function buildLoginReturnUrl(request: Request, env: Env): string {
+  const siteBase = resolvePublicSiteBaseUrl(request, env);
+  const loginPath = normalizePath("/login/");
+  return `${siteBase}${loginPath}`;
+}
+
+function isExistingAccountSignupResponse(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return normalized.includes("already registered") || normalized.includes("already been registered");
 }
 
 async function requireAuth(request: Request, env: Env, ctx: ExecutionContext): Promise<AuthContext | Response> {

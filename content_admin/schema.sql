@@ -143,3 +143,16 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 
 CREATE INDEX IF NOT EXISTS idx_contact_messages_status_created
   ON contact_messages(status, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS auth_attempt_buckets (
+  bucket_key TEXT PRIMARY KEY,
+  action TEXT NOT NULL,
+  attempt_count INTEGER NOT NULL,
+  blocked_until TEXT,
+  last_attempt_at TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_auth_attempt_buckets_action_updated
+  ON auth_attempt_buckets(action, updated_at DESC);
