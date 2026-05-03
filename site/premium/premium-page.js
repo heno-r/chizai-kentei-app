@@ -29,7 +29,7 @@
         fitMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     purchaseReadyButton?.addEventListener("click", () => {
-        showMessage(purchaseMessage, `購入前チェックページへ移動します。価格や使い方を確認してから、3級プレミアム版 (${getPremiumPriceText()}) に進めるようにしています。`);
+        showMessage(purchaseMessage, `購入前チェックページへ移動します。価格や流れを確認したあと、そのまま 3級プレミアム版 (${getPremiumPriceText()}) の購入手続きへ進めます。`);
         purchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         window.setTimeout(() => {
             window.location.href = getPremiumPurchasePath();
@@ -40,7 +40,7 @@
         flowMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     deviceCheckButton?.addEventListener("click", () => {
-        showMessage(deviceMessage, "iPhone / Android を主対象にしつつ、購入前の確認や無料体験は PC ブラウザでも見られるようにしています。オフライン対応は後回しにして、まずはオンラインで安定して使えることを優先しています。");
+        showMessage(deviceMessage, "iPhone / Android を中心に、購入前の確認や学習画面は PC ブラウザからも利用できます。インターネット接続がある状態で使う前提です。");
         deviceMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     faqButtons.forEach((button) => {
