@@ -1,0 +1,8 @@
+[project]
+name = "chizai-review-tool"
+version = "0.1.0"
+description = "Human review GUI for intellectual property quiz content"
+requires-python = ">=3.11"
+
+[tool.uv]
+package = false

@@ -1,0 +1,37 @@
+{
+  "published_at": "2026-04-28",
+  "plans": [
+    {
+      "code": "free",
+      "label": "無料体験版",
+      "price_text": "0円",
+      "description": "まずは3級の基本問題を50問でお試しできます。",
+      "features": ["無料診断", "無料問題", "記事導線"]
+    },
+    {
+      "code": "grade3_full",
+      "label": "3級プレミアム版",
+      "price_text": "1,200円",
+      "description": "無料50問に加えて、苦手復習や直前対策までまとめて使える3級向けプランです。",
+      "features": ["追加問題", "苦手復習", "直前14日モード"]
+    },
+    {
+      "code": "grade2_addon",
+      "label": "2級プレミアム版",
+      "price_text": "準備中",
+      "description": "2級向けの問題と復習機能は、準備が整い次第案内予定です。",
+      "features": ["2級問題", "追加学習", "準備中"],
+      "available": false,
+      "status_label": "準備中"
+    },
+    {
+      "code": "bundle",
+      "label": "3級+2級セット",
+      "price_text": "準備中",
+      "description": "3級と2級をまとめて学べるセットは、将来の拡張項目として準備中です。",
+      "features": ["セット販売", "追加問題", "準備中"],
+      "available": false,
+      "status_label": "準備中"
+    }
+  ]
+}

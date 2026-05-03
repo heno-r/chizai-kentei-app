@@ -1,0 +1,7 @@
+[project]
+name = "content-admin"
+version = "0.1.0"
+description = "Local content publishing tools for the quiz app"
+requires-python = ">=3.11"
+dependencies = []
+

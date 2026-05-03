@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>無料診断 | しけん準備室 知財3級対策</title>
+    <meta
+      name="description"
+      content="しけん準備室 知財3級対策の無料診断です。知的財産管理技能検定3級に向けた現在地を短い質問で確認できます。"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/diagnosis.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/">しけん準備室</a>
+        <nav class="topnav">
+          <a href="/">LP</a>
+          <a href="/articles/chizai-kentei-3kyu-1month/">記事</a>
+          <a href="/app/">無料版を試す</a>
+        </nav>
+      </header>
+
+      <main class="diagnosis-layout">
+        <section class="panel diagnosis-intro">
+          <p class="eyebrow">無料診断</p>
+          <h1>5問でわかる、知財3級の現在地診断</h1>
+          <p class="lead">
+            直前期に必要なのは、教材を増やすことではなく「今の位置」と「次にやること」を決めること。
+            回答に応じて、おすすめの進め方を表示します。
+          </p>
+        </section>
+
+        <form id="diagnosis-form" class="panel diagnosis-form">
+          <fieldset>
+            <legend>1. 知的財産権の種類を大まかに説明できる</legend>
+            <label><input type="radio" name="q1" value="2" required /> はい</label>
+            <label><input type="radio" name="q1" value="1" /> 少し不安</label>
+            <label><input type="radio" name="q1" value="0" /> まだ難しい</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>2. 著作権・商標・特許の違いを聞かれると答えられる</legend>
+            <label><input type="radio" name="q2" value="2" required /> かなり答えられる</label>
+            <label><input type="radio" name="q2" value="1" /> 一部なら答えられる</label>
+            <label><input type="radio" name="q2" value="0" /> まだ曖昧</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>3. 試験までの1か月で、週に3回以上は学習時間を確保できそう</legend>
+            <label><input type="radio" name="q3" value="2" required /> はい</label>
+            <label><input type="radio" name="q3" value="1" /> 週1-2回なら</label>
+            <label><input type="radio" name="q3" value="0" /> かなり厳しい</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>4. 直前期に、間違えた論点だけを絞って復習したい</legend>
+            <label><input type="radio" name="q4" value="2" required /> とてもそう思う</label>
+            <label><input type="radio" name="q4" value="1" /> あると助かる</label>
+            <label><input type="radio" name="q4" value="0" /> まずは一通り学びたい</label>
+          </fieldset>
+
+          <fieldset>
+            <legend>5. 今回はまず3級合格を優先したい</legend>
+            <label><input type="radio" name="q5" value="2" required /> はい</label>
+            <label><input type="radio" name="q5" value="1" /> 迷っている</label>
+            <label><input type="radio" name="q5" value="0" /> まだ優先順位を決めきれていない</label>
+          </fieldset>
+
+          <div class="panel muted-panel coming-soon-panel" aria-disabled="true">
+            <p class="section-kicker">2級について</p>
+            <span class="status-chip status-chip-muted">準備中</span>
+            <h3>2級向けコンテンツは準備中です</h3>
+            <p>今はまず3級の学習に集中できるよう、無料版とプレミアム版を整えています。</p>
+            <p>現時点では2級向けの選択や申し込みはできません。</p>
+          </div>
+
+          <button class="button button-primary" type="submit">診断結果を見る</button>
+        </form>
+
+        <section id="diagnosis-result" class="panel diagnosis-result hidden">
+          <p class="section-kicker">診断結果</p>
+          <h2 id="result-heading"></h2>
+          <p id="result-copy"></p>
+          <div class="result-recommend">
+            <div>
+              <span class="price-name">おすすめ</span>
+              <strong id="result-plan" class="price-value"></strong>
+            </div>
+            <div>
+              <span class="price-name">次の一歩</span>
+              <strong id="result-action" class="price-value"></strong>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <a id="result-primary-link" class="button button-primary" href="/app/">無料版を試す</a>
+            <a class="button button-secondary" href="/articles/chizai-kentei-3kyu-1month/">記事を読む</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="/terms/">利用規約</a>
+          <a href="/privacy/">プライバシーポリシー</a>
+          <a href="/legal/">特定商取引法に基づく表記</a>
+        </div>
+        <p>しけん準備室 知財3級対策 | 知的財産管理技能検定3級の学習用アプリ</p>
+      </footer>
+    </div>
+  </body>
+</html>

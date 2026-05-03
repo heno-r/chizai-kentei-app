@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>購入前チェック | 3級プレミアム版 | しけん準備室 知財3級対策</title>
+    <meta
+      name="description"
+      content="しけん準備室 知財3級対策の3級プレミアム版 購入前チェックページです。価格、解放機能、対応端末、オンライン前提を確認できます。"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/runtime-config.js"></script>
+    <script defer src="/app/auth-client.js"></script>
+    <script defer src="/premium/purchase-ready-page.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/">しけん準備室</a>
+        <nav class="topnav">
+          <a href="/">LP</a>
+          <a href="/premium/">3級プレミアム版の案内</a>
+          <a href="/app/">無料版を試す</a>
+          <a href="/login/">ログイン</a>
+        </nav>
+      </header>
+
+      <main class="article-layout">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">購入前チェック</p>
+            <h1>3級プレミアム版に進む前に、確認したいことをひとまとめに。</h1>
+            <p class="lead">
+              このページは、購入直前に見たい情報だけを短く整理したページです。
+              価格、解放される機能、対応端末、オンライン前提、問い合わせまわりを確認してから次へ進めます。
+            </p>
+            <div class="hero-actions">
+              <a class="button button-secondary" href="/app/">無料版をもう一度試す</a>
+              <a class="button button-primary" href="#purchase-flow">このまま購入の流れへ進む</a>
+            </div>
+            <dl class="hero-metrics">
+              <div>
+                <dt>対象</dt>
+                <dd>知的財産管理技能検定3級</dd>
+              </div>
+              <div>
+                <dt>価格目安</dt>
+                <dd>1,200円 / 追加月額料金なし</dd>
+              </div>
+              <div>
+                <dt>課金方式</dt>
+                <dd>買い切り / 追加月額料金なし</dd>
+              </div>
+            </dl>
+          </div>
+
+          <aside class="hero-card">
+            <p class="card-label">このページで確認すること</p>
+            <ul class="check-list">
+              <li>プレミアム版で使える機能</li>
+              <li>無料版で見ておくべきこと</li>
+              <li>対応端末と利用前提</li>
+              <li>問い合わせや返金案内の出し方</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head-row">
+            <div>
+              <p class="section-kicker">購入前チェック</p>
+              <h2>この4点を確認できたら、プレミアム版に進みやすい状態です</h2>
+            </div>
+            <div class="cta-actions">
+              <button id="ready-check-button" class="button button-primary" type="button">チェック結果を見る</button>
+              <button id="need-trial-button" class="button button-secondary" type="button">まだ無料版で十分かを見る</button>
+            </div>
+          </div>
+          <div class="flow-grid">
+            <article class="flow-step">
+              <span class="step-index">01</span>
+              <h3>無料版で相性確認済み</h3>
+              <p>出題形式と解説の雰囲気が合うか、少なくとも一度は無料版で触って確かめておく前提です。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">02</span>
+              <h3>必要な機能が明確</h3>
+              <p>苦手カテゴリ分析、要復習キュー、直前14日モードが必要かどうかを判断できている状態が理想です。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">03</span>
+              <h3>利用環境を把握</h3>
+              <p>最終版は iPhone / Android を主対象にしつつ、PC でも案内や無料体験を見られる構成を前提にします。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">04</span>
+              <h3>案内事項に納得できる</h3>
+              <p>価格、返金可否、問い合わせ先、オンライン前提を購入前に確認できるようにしてから進む想定です。</p>
+            </article>
+          </div>
+          <div id="ready-check-message" class="premium-inline-note hidden"></div>
+          <div id="need-trial-message" class="premium-inline-note hidden"></div>
+        </section>
+
+        <section class="panel">
+          <p class="section-kicker">プレミアム版で使えるもの</p>
+          <h2>購入直後に使い始めると効果が出やすい機能</h2>
+          <div class="feature-preview-grid">
+            <article class="preview-card">
+              <h3>間違えた問題だけ復習</h3>
+              <p>まずはここから始めると、購入直後でも苦手の再確認に入りやすくなります。</p>
+            </article>
+            <article class="preview-card">
+              <h3>要復習キュー</h3>
+              <p>引っかかった問題を積み上げて、自分専用の短い復習セットを回し続けられます。</p>
+            </article>
+            <article class="preview-card">
+              <h3>苦手カテゴリ分析</h3>
+              <p>著作権・商標・特許・意匠のどこを落としているかを見て、次の学習対象を決めやすくします。</p>
+            </article>
+            <article class="preview-card">
+              <h3>直前14日モード</h3>
+              <p>試験直前に入ったら、今日のおすすめと組み合わせて仕上げ順を固定しやすくなります。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="purchase-flow">
+          <div class="panel-head-row">
+            <div>
+              <p class="section-kicker">購入の流れ</p>
+              <h2>ここでは、ログインしてから購入へ進みます</h2>
+            </div>
+            <div class="cta-actions">
+              <button id="login-placeholder-button" class="button button-secondary" type="button">1. ログインする</button>
+              <button id="start-checkout-button" class="button button-primary" type="button">2. 購入手続きに進む</button>
+            </div>
+          </div>
+          <p>
+            順番は「無料版で相性確認 → ログイン → 購入 → プレミアム版で続きから学習」です。
+            すでにログイン済みなら、そのまま購入手続きに進めます。
+          </p>
+          <div id="login-placeholder-message" class="premium-inline-note hidden"></div>
+          <div id="start-checkout-message" class="premium-inline-note hidden"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head-row">
+            <div>
+              <p class="section-kicker">購入後の流れ</p>
+              <h2>購入後は、そのままプレミアム版で学習を続けます</h2>
+            </div>
+          </div>
+          <div class="flow-grid">
+            <article class="flow-step">
+              <span class="step-index">01</span>
+              <h3>未購入</h3>
+              <p>無料版を使いながら、プレミアム版の価値と購入前条件を確認する段階です。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">02</span>
+              <h3>購入中</h3>
+              <p>決済画面に進み、支払い手続き中の状態です。この時点ではまだ機能は解放されません。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">03</span>
+              <h3>購入成功</h3>
+              <p>決済は完了したが、プレミアム権利の反映確認を短時間待つ可能性がある状態です。</p>
+            </article>
+            <article class="flow-step">
+              <span class="step-index">04</span>
+              <h3>ライセンス反映済み</h3>
+              <p>プレミアム版の権利が反映され、無料版アプリからそのまま機能を使い始められる状態です。</p>
+            </article>
+          </div>
+          <div class="premium-inline-note">
+            購入後は `/app/` に戻り、プレミアム版の機能が使える状態から再開する想定です。
+          </div>
+        </section>
+
+        <section class="section-grid">
+            <article class="panel">
+            <p class="section-kicker">利用前提</p>
+            <h2>購入前に明示しておきたいこと</h2>
+            <ul class="check-list">
+              <li>価格は 3級プレミアム版 1,200円の買い切り想定で、追加月額料金はありません</li>
+              <li>購入後は対象機能が使えるようになります</li>
+              <li>問題の読み込みがあるため、まずはオンライン前提です</li>
+              <li>価格や問い合わせ先は購入前に確認できる形にします</li>
+            </ul>
+          </article>
+          <article class="panel">
+            <p class="section-kicker">購入しない判断もOK</p>
+            <h2>まだ無料版で十分なケース</h2>
+            <ul class="check-list">
+              <li>まだ出題形式の相性確認が済んでいない</li>
+              <li>苦手カテゴリがまだ見えていない</li>
+              <li>本番までまだ余裕があり、直前導線が不要</li>
+              <li>まずは無料版で継続できるかを見たい</li>
+            </ul>
+          </article>
+        </section>
+
+        <section class="panel premium-faq-panel">
+          <p class="section-kicker">購入前 FAQ</p>
+          <h2>最後に気になりやすい点</h2>
+          <div class="faq-list">
+            <article class="faq-item">
+              <button class="faq-toggle" type="button" data-faq-target="ready-faq-1" aria-expanded="false">
+                購入直後に最初に使うのはどの機能ですか？
+              </button>
+              <div id="ready-faq-1" class="faq-answer hidden">
+                <p>おすすめは「間違えた問題だけ復習」か「要復習キュー」です。購入直後から苦手だけを回し始めやすいからです。</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button class="faq-toggle" type="button" data-faq-target="ready-faq-2" aria-expanded="false">
+                返金や問い合わせはどう案内しますか？
+              </button>
+              <div id="ready-faq-2" class="faq-answer hidden">
+                <p>購入実装時に、価格、返金可否、問い合わせ先を購入前ページか決済直前ページに明示する前提です。</p>
+              </div>
+            </article>
+            <article class="faq-item">
+              <button class="faq-toggle" type="button" data-faq-target="ready-faq-3" aria-expanded="false">
+                PC だけでも使えますか？
+              </button>
+              <div id="ready-faq-3" class="faq-answer hidden">
+                <p>案内や無料体験は PC でも見られますが、最終版の主対象はスマートフォンです。購入前に対象端末を明記する想定です。</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="cta-band">
+          <div>
+            <p class="section-kicker">次の一歩</p>
+            <h2>無料版に戻るか、プレミアム版の案内へ戻るかをここで選べるようにする。</h2>
+            <p>
+              まだ迷いがある人は無料版へ戻り、十分に必要性が見えた人はプレミアム版の案内へ戻って導線全体を確認する、
+              という分岐を明確にしておくと自然です。
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="button button-primary" href="/app/">無料版を試す</a>
+            <a class="button button-secondary" href="/premium/">3級プレミアム版の案内へ戻る</a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="/terms/">利用規約</a>
+          <a href="/privacy/">プライバシーポリシー</a>
+          <a href="/legal/">特定商取引法に基づく表記</a>
+        </div>
+        <p>しけん準備室 知財3級対策 | 知的財産管理技能検定3級の学習用アプリ</p>
+      </footer>
+    </div>
+  </body>
+</html>

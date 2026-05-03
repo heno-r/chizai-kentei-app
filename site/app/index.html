@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <title>しけん準備室 知財3級対策 | 3級無料版</title>
+    <link rel="stylesheet" href="./styles.css?v=20260427-4" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">3級 無料体験版</p>
+        <h1>しけん準備室 知財3級対策</h1>
+        <p class="hero-copy">
+          知的財産管理技能検定3級の学習用アプリとして、まずは無料で解いて出題形式や解説の相性を確認できます。
+          苦手復習や直前対策まで進みたい人には、プレミアム版を案内します。
+        </p>
+      </header>
+
+      <main id="app" class="screen-stack">
+        <section id="start-screen" class="panel">
+          <div class="panel-header">
+            <p class="panel-kicker">学習開始</p>
+            <h2>出題モードを選ぶ</h2>
+          </div>
+
+          <section class="plan-selector-panel">
+            <div>
+              <span class="summary-label">公開範囲</span>
+              <h3 id="plan-title">無料体験版</h3>
+              <p id="plan-copy" class="picker-copy">
+                まずは無料版で、3級の基本問題と学習の流れを試せます。
+              </p>
+            </div>
+            <div id="plan-buttons" class="plan-buttons">
+              <span class="plan-pill">無料体験版</span>
+              <p class="picker-copy">
+                プレミアム版では、苦手復習や直前対策向けの機能が使えるようになります。
+              </p>
+            </div>
+          </section>
+
+          <section class="plan-panel">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">次のステップ</span>
+                <h3 id="account-status-title">確認中</h3>
+              </div>
+              <div class="resume-actions">
+                <a id="account-login-link" class="secondary-button" href="/login/">ログインする</a>
+                <button id="account-logout-button" class="ghost-button hidden" type="button">ログアウト</button>
+              </div>
+            </div>
+            <p id="account-status-copy" class="picker-copy">
+              無料版はこのまま使えます。購入済みの状態で続けたいときは、ログインして購入状態を確認できます。
+            </p>
+            <div class="resume-actions">
+              <a class="ghost-button" href="/premium/">プレミアム版の案内を見る</a>
+              <a id="account-upgrade-link" class="primary-button" href="/premium/ready/">このまま購入前チェックへ進む</a>
+            </div>
+          </section>
+
+          <section class="plan-panel">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">プラン一覧</span>
+                <h3>無料版とプレミアム版の違い</h3>
+              </div>
+              <p class="picker-copy">まずは無料版を試して、必要ならプレミアム版へ進めます。</p>
+            </div>
+            <div id="public-catalog" class="stats-grid"></div>
+          </section>
+
+          <div class="history-strip">
+            <div class="history-card">
+              <span class="summary-label">累計セッション</span>
+              <strong id="history-session-count">0回</strong>
+            </div>
+            <div class="history-card">
+              <span class="summary-label">累計回答数</span>
+              <strong id="history-answer-count">0問</strong>
+            </div>
+            <div class="history-card">
+              <span class="summary-label">平均正答率</span>
+              <strong id="history-average-rate">0%</strong>
+            </div>
+            <div class="history-card">
+              <span class="summary-label">直近の苦手</span>
+              <strong id="history-weak-category">まだなし</strong>
+            </div>
+          </div>
+
+          <div class="mode-grid mode-grid-wide">
+            <button class="mode-card is-active" data-mode="sequential" data-feature="sequential_mode">
+              <span class="plan-pill">無料版</span>
+              <span class="mode-title">順番に学習</span>
+              <span class="mode-desc">著作権から意匠まで、基本論点を流れで確認</span>
+              <span class="mode-lock-note"></span>
+            </button>
+            <button class="mode-card" data-mode="random" data-feature="random_mode">
+              <span class="plan-pill">無料版</span>
+              <span class="mode-title">ランダム学習</span>
+              <span class="mode-desc">本番を意識して順不同で解く</span>
+              <span class="mode-lock-note"></span>
+            </button>
+            <button class="mode-card" data-mode="category" data-feature="category_mode">
+              <span class="plan-pill">プレミアム版</span>
+              <span class="mode-title">カテゴリ別学習</span>
+              <span class="mode-desc">苦手カテゴリだけを集中的に解く</span>
+              <span class="mode-lock-note"></span>
+            </button>
+            <button class="mode-card" data-mode="final14" data-feature="final14_mode">
+              <span class="plan-pill">プレミアム版</span>
+              <span class="mode-title">直前14日モード</span>
+              <span class="mode-desc">試験1か月前の仕上げを意識して、苦手優先で回す</span>
+              <span class="mode-lock-note"></span>
+            </button>
+            <button class="mode-card" data-mode="flagged" data-feature="flagged_mode">
+              <span class="plan-pill">プレミアム版</span>
+              <span class="mode-title">要復習だけ学習</span>
+              <span class="mode-desc">自分でチェックした問題だけを集中的に解き直す</span>
+              <span class="mode-lock-note"></span>
+            </button>
+          </div>
+
+          <section id="premium-upsell-panel" class="premium-upsell-panel">
+            <div>
+              <span class="summary-label">プレミアム版</span>
+              <h3 id="premium-upsell-title">無料版のあとにやることを、ここで1つに絞る</h3>
+              <p id="premium-upsell-copy" class="picker-copy">
+                無料版で相性を確認したあとに、ログイン、購入、プレミアム解放までを順番に確認できます。
+              </p>
+            </div>
+            <div class="premium-upsell-actions">
+              <strong id="premium-price-note" class="premium-price-note">3級プレミアム版 1,200円 / 追加月額料金なし</strong>
+              <a id="premium-guide-link" class="ghost-button" href="/premium/">内容だけ先に見る</a>
+              <a id="premium-ready-link" class="primary-button" href="/premium/ready/">購入前チェックへ進む</a>
+            </div>
+          </section>
+
+          <section id="premium-manifest-panel" class="plan-panel hidden">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">解放内容</span>
+                <h3 id="premium-manifest-title">プレミアム版で使える機能</h3>
+              </div>
+              <p id="premium-manifest-copy" class="picker-copy">購入後に解放された機能をここで確認できます。</p>
+            </div>
+            <div id="premium-manifest-features" class="stats-grid"></div>
+          </section>
+
+          <div id="category-picker" class="category-picker hidden">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">カテゴリ選択</span>
+                <h3>重点的に解く分野を選ぶ</h3>
+              </div>
+              <p class="picker-copy">カテゴリ別学習モードのときだけ使います。</p>
+            </div>
+            <div id="category-buttons" class="category-buttons"></div>
+          </div>
+
+          <div class="summary-strip">
+            <div>
+              <span class="summary-label">問題数</span>
+              <strong id="question-count">0問</strong>
+            </div>
+            <div>
+              <span class="summary-label">対象</span>
+              <strong>3級 基本問題</strong>
+            </div>
+            <div>
+              <span class="summary-label">出題セット</span>
+              <strong id="queue-preview">全50問</strong>
+            </div>
+            <div>
+              <span class="summary-label">要復習</span>
+              <strong id="flagged-count">0問</strong>
+              <small id="priority-count" class="summary-subtext">最重点 0問</small>
+            </div>
+          </div>
+
+          <section id="study-plan-panel" class="plan-panel">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">直前14日プラン</span>
+                <h3>苦手カテゴリを毎日少しずつ回す</h3>
+              </div>
+              <p class="picker-copy">学習履歴をもとに、優先度の高い順で14日分の目安を出します。</p>
+            </div>
+            <div id="study-plan" class="plan-grid"></div>
+          </section>
+
+          <section id="recommend-panel" class="recommend-panel">
+            <div>
+              <span class="summary-label">今日のおすすめ</span>
+              <h3 id="recommend-title">まずは順番に学習</h3>
+              <p id="recommend-copy" class="picker-copy">履歴が増えると、ここに次に解くべきモードを提案します。</p>
+            </div>
+            <button id="recommend-button" class="primary-button">おすすめで始める</button>
+          </section>
+
+          <section class="insight-grid">
+            <section id="category-stats-panel" class="plan-panel">
+              <div class="picker-header">
+                <div>
+                  <span class="summary-label">カテゴリ別成績</span>
+                  <h3>どの分野が苦手かを把握する</h3>
+                </div>
+                <p class="picker-copy">履歴が増えるほど、次に解くべきカテゴリがはっきりします。</p>
+              </div>
+              <div id="category-stats" class="stats-grid"></div>
+            </section>
+
+            <section id="recent-sessions-panel" class="plan-panel">
+              <div class="picker-header">
+                <div>
+                  <span class="summary-label">直近セッション</span>
+                  <h3>最近の学習ログ</h3>
+                </div>
+                <button id="reset-history-button" class="ghost-button">履歴をリセット</button>
+              </div>
+              <div id="recent-sessions" class="session-list"></div>
+            </section>
+          </section>
+
+          <section id="resume-panel" class="resume-panel hidden">
+            <div>
+              <span class="summary-label">中断中の学習</span>
+              <h3 id="resume-title">途中から再開できます</h3>
+              <p id="resume-description" class="picker-copy">前回の続きから再開できます。</p>
+            </div>
+            <div class="resume-actions">
+              <button id="resume-button" class="primary-button">中断した続きから再開</button>
+              <button id="discard-resume-button" class="secondary-button">中断データを破棄</button>
+            </div>
+          </section>
+
+          <button id="start-button" class="primary-button">学習をはじめる</button>
+        </section>
+
+        <section id="quiz-screen" class="panel hidden">
+          <div class="quiz-topbar">
+            <div>
+              <p id="progress-text" class="progress-text">1 / 5</p>
+              <h2 id="question-title" class="question-title">問題文</h2>
+            </div>
+            <div class="score-chip">
+              <span>正解</span>
+              <strong id="score-text">0</strong>
+            </div>
+          </div>
+
+          <div class="meta-row">
+            <span id="category-badge" class="badge">著作権</span>
+            <span id="subtopic-badge" class="badge badge-soft">著作権の発生</span>
+            <button id="flag-toggle-button" class="mini-toggle-button">この問題を要復習にする</button>
+          </div>
+
+          <div id="choices" class="choices"></div>
+
+          <section id="feedback-card" class="feedback-card hidden">
+            <div class="feedback-head">
+              <span id="feedback-status" class="feedback-status">正解</span>
+              <span id="memory-tip" class="memory-tip">覚え方</span>
+            </div>
+            <p id="feedback-explanation" class="feedback-explanation"></p>
+            <div id="option-reasons" class="option-reasons"></div>
+            <section id="reference-links" class="reference-links hidden"></section>
+          </section>
+
+          <div class="action-row">
+            <button id="pause-button" class="ghost-button">中断してあとで再開</button>
+            <button id="abort-button" class="secondary-button">ここで中止して評価</button>
+            <button id="next-button" class="primary-button hidden">次の問題へ</button>
+          </div>
+        </section>
+
+        <section id="result-screen" class="panel hidden">
+          <div class="panel-header">
+            <p class="panel-kicker">学習結果</p>
+            <h2 id="result-title">5問中 5問正解</h2>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card">
+              <span class="summary-label">正答率</span>
+              <strong id="result-rate">100%</strong>
+            </div>
+            <div class="result-card">
+              <span class="summary-label">苦手カテゴリ</span>
+              <strong id="weak-category">なし</strong>
+            </div>
+            <div class="result-card">
+              <span class="summary-label">今回のモード</span>
+              <strong id="result-mode">順番に学習</strong>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="section-title">復習したい問題</h3>
+            <div id="review-list" class="review-list"></div>
+          </div>
+
+          <section id="result-premium-panel" class="premium-upsell-panel result-premium-panel">
+            <div>
+              <span class="summary-label">プレミアム版</span>
+              <h3 id="result-premium-title">苦手を残さず仕上げる</h3>
+              <p id="result-premium-copy" class="picker-copy">
+                プレミアム版では、間違えた問題だけ復習、苦手カテゴリ分析、直前14日モードが使えます。
+              </p>
+            </div>
+            <div class="premium-upsell-actions">
+              <strong id="result-premium-price-note" class="premium-price-note">3級プレミアム版 1,200円 / 追加月額料金なし</strong>
+              <a id="result-guide-link" class="primary-button" href="/#premium-plan">プレミアム版で続ける</a>
+            </div>
+          </section>
+
+          <div class="action-row">
+            <button id="focus-weak-button" class="ghost-button hidden">苦手カテゴリを続けて学習</button>
+            <button id="retry-wrong-button" class="ghost-button hidden">間違えた問題だけ復習</button>
+            <button id="retry-flagged-button" class="ghost-button hidden">要復習だけ解き直す</button>
+            <button id="restart-button" class="secondary-button">もう一度学習する</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/assets/runtime-config.js"></script>
+    <script src="./api-client.js"></script>
+    <script src="./auth-client.js"></script>
+    <script src="./account-status.js"></script>
+    <script src="./app.js?v=20260502-1"></script>
+  </body>
+</html>

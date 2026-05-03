@@ -1,0 +1,36 @@
+# OS / editor
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+site_server_err.log
+site_server_out.log
+
+# Python
+**/__pycache__/
+**/.venv/
+*.pyc
+
+# Node / build caches
+**/node_modules/
+site/build/
+secure_api_worker/.wrangler/
+
+# Local environment / secrets
+secure_api_worker/.dev.vars
+secure_api_worker/wrangler.toml
+
+# Local databases / internal data
+content/
+shared_content/
+content_admin/data/
+content_admin/deploy_artifacts/
+docs/pages_dev_release_next_steps.txt
+quiz_app/data/questions_before_review_export.json
+quiz_app/data/questions_first_release_5.json
+
+# Optional local exports
+*.sqlite
+*.sqlite3
+*.db

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>お問い合わせ | しけん準備室 知財3級対策</title>
+    <meta
+      name="description"
+      content="しけん準備室 知財3級対策のお問い合わせページです。知的財産管理技能検定3級の学習用アプリに関するお問い合わせを受け付けます。"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/runtime-config.js?v=20260502-1"></script>
+    <script defer src="/contact/contact-page.js?v=20260502-1"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/">しけん準備室</a>
+        <nav class="topnav">
+          <a href="/">LP</a>
+          <a href="/app/">無料版を試す</a>
+          <a href="/premium/">3級プレミアム版の案内</a>
+        </nav>
+      </header>
+
+      <main class="article-layout">
+        <section class="panel article-panel">
+          <p class="section-kicker">お問い合わせ</p>
+          <h1>お問い合わせフォーム</h1>
+          <p class="lead">
+            しけん準備室 知財3級対策に関するお問い合わせ窓口です。内容を確認のうえ、必要に応じて返信します。
+          </p>
+
+          <div class="feature-preview-grid">
+            <article class="preview-card">
+              <h3>お問い合わせ内容の例</h3>
+              <p>ログイン、購入状態、学習内容、掲載情報、公開前の確認事項など。</p>
+            </article>
+            <article class="preview-card">
+              <h3>返信について</h3>
+              <p>内容によっては回答まで時間がかかる場合があります。営業目的の連絡には返信しないことがあります。</p>
+            </article>
+          </div>
+
+          <form id="contact-form" class="auth-form-panel">
+            <div class="auth-form-grid">
+              <label class="auth-field">
+                <span>お名前</span>
+                <input type="text" name="name" placeholder="お名前" required />
+              </label>
+              <label class="auth-field">
+                <span>返信先メールアドレス</span>
+                <input type="email" name="reply_email" placeholder="you@example.com" required />
+              </label>
+            </div>
+            <label class="auth-field">
+              <span>お問い合わせ内容</span>
+              <textarea name="message" rows="8" placeholder="お問い合わせ内容をご記入ください。" required></textarea>
+            </label>
+            <p class="fineprint">
+              送信内容は確認のうえ対応します。返信まで時間がかかる場合があります。
+            </p>
+            <div id="contact-status-message" class="premium-inline-note hidden"></div>
+            <button id="contact-submit-button" class="button button-primary" type="submit">送信する</button>
+          </form>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="/terms/">利用規約</a>
+          <a href="/privacy/">プライバシーポリシー</a>
+          <a href="/legal/">特定商取引法に基づく表記</a>
+          <a href="/contact/">お問い合わせ</a>
+        </div>
+        <p>しけん準備室 知財3級対策 | 知的財産管理技能検定3級の学習用アプリ</p>
+      </footer>
+    </div>
+  </body>
+</html>

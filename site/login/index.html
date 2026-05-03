@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ログイン | しけん準備室 知財3級対策</title>
+    <meta
+      name="description"
+      content="しけん準備室 知財3級対策のログインページです。無料版とプレミアム版の利用状態を確認して元の画面へ戻れます。"
+    />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/runtime-config.js"></script>
+    <script defer src="/app/auth-client.js"></script>
+    <script defer src="/login/login-page.js"></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/">しけん準備室</a>
+        <nav class="topnav">
+          <a href="/">LP</a>
+          <a href="/app/">無料版を試す</a>
+          <a href="/premium/">3級プレミアム版の案内</a>
+        </nav>
+      </header>
+
+      <main class="article-layout">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">ログイン</p>
+            <h1>購入後も、途中からそのまま続けられるように。</h1>
+            <p class="lead">
+              無料版の状態で続けるか、プレミアム版の状態で続けるかを確認して、元の画面へ戻れます。
+              購入前チェックや無料版の学習画面から戻ってくる前提で、このページを使います。
+            </p>
+            <div id="login-local-mode" class="hero-actions">
+              <button id="login-free-button" class="button button-secondary" type="button">無料版の状態で続ける</button>
+              <button id="login-premium-button" class="button button-primary" type="button">プレミアム版の状態で続ける</button>
+            </div>
+            <div id="login-supabase-mode" class="panel auth-form-panel hidden">
+              <p class="section-kicker">Supabase メールログイン</p>
+              <div class="auth-form-grid">
+                <label class="auth-field">
+                  <span>メールアドレス</span>
+                  <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" />
+                </label>
+                <label class="auth-field">
+                  <span>パスワード</span>
+                  <input id="login-password" type="password" autocomplete="current-password" placeholder="8文字以上を推奨" />
+                </label>
+              </div>
+              <div class="cta-actions">
+                <button id="login-email-signin-button" class="button button-primary" type="button">メールでログイン</button>
+                <button id="login-email-signup-button" class="button button-secondary" type="button">アカウントを作成</button>
+              </div>
+            </div>
+            <dl class="hero-metrics">
+              <div>
+                <dt>現在の状態</dt>
+                <dd id="login-current-status">確認中</dd>
+              </div>
+              <div>
+                <dt>戻り先</dt>
+                <dd id="login-return-target">/app/</dd>
+              </div>
+              <div>
+                <dt>対象</dt>
+                <dd>知的財産管理技能検定3級</dd>
+              </div>
+            </dl>
+          </div>
+
+          <aside class="hero-card">
+            <p class="card-label">このページでできること</p>
+            <ul class="check-list">
+              <li>無料版として戻る</li>
+              <li>プレミアム版として戻る</li>
+              <li>現在の利用状態を確認する</li>
+              <li>必要ならログアウトする</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head-row">
+            <div>
+              <p class="section-kicker">利用状態</p>
+              <h2>今の状態に合わせて、次の画面へ戻れます</h2>
+            </div>
+            <div class="cta-actions">
+              <button id="login-logout-button" class="button button-secondary hidden" type="button">ログアウト</button>
+              <a class="button button-secondary" href="/app/">無料版へ戻る</a>
+            </div>
+          </div>
+          <p id="login-status-copy">
+            無料版はそのまま使えます。購入後にプレミアム版として続けるときは、ここから状態を確認して次の画面へ進めます。
+          </p>
+          <div id="login-info-message" class="premium-inline-note hidden"></div>
+        </section>
+
+        <section id="login-supabase-checklist" class="panel hidden">
+          <p class="section-kicker">Supabase 設定チェック</p>
+          <h2>ログインできないときは、まずこの3点を確認してください</h2>
+          <ul class="check-list">
+            <li>`Authentication > Sign In / Providers > Email` が有効になっている</li>
+            <li>`Authentication > URL Configuration` に `http://127.0.0.1:8780/login/` などの URL が入っている</li>
+            <li>`Confirm email` を ON にしている場合は、確認メール内のリンクを開き終わっている</li>
+          </ul>
+          <p class="fineprint">
+            ローカルで早く確認したいときは `Confirm email` を一時的に OFF にして進めても構いません。
+            本番公開前に ON に戻す運用でも大丈夫です。
+          </p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-links">
+          <a href="/terms/">利用規約</a>
+          <a href="/privacy/">プライバシーポリシー</a>
+          <a href="/legal/">特定商取引法に基づく表記</a>
+        </div>
+        <p>しけん準備室 知財3級対策 | 知的財産管理技能検定3級の学習用アプリ</p>
+      </footer>
+    </div>
+  </body>
+</html>

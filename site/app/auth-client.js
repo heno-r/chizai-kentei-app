@@ -1,0 +1,353 @@
+(function attachSiteAuthClient() {
+    const runtimeConfig = window.APP_RUNTIME_CONFIG || {};
+    const STORAGE_KEY = "chizai-site-auth-session-v1";
+    const SUPABASE_BROWSER_SDK_URL = "https://esm.sh/@supabase/supabase-js@2";
+    const authMode = runtimeConfig.authMode || "local_stub";
+    let supabaseClientPromise = null;
+    function isSupabaseConfigured() {
+        return Boolean(runtimeConfig.supabaseUrl && runtimeConfig.supabasePublishableKey);
+    }
+    async function getSupabaseClient() {
+        if (authMode !== "supabase") {
+            return null;
+        }
+        if (!isSupabaseConfigured()) {
+            return null;
+        }
+        if (!supabaseClientPromise) {
+            const importSupabaseModule = new Function("specifier", "return import(specifier);");
+            supabaseClientPromise = importSupabaseModule(SUPABASE_BROWSER_SDK_URL).then((mod) => mod.createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabasePublishableKey, {
+                auth: {
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true,
+                },
+            }));
+        }
+        return supabaseClientPromise;
+    }
+    function buildApiUrl(path) {
+        const baseUrl = (runtimeConfig.secureApiBaseUrl || "").replace(/\/+$/, "");
+        return baseUrl ? `${baseUrl}${path}` : path;
+    }
+    function isLocalHostRuntime() {
+        if (typeof window === "undefined" || !window.location?.hostname) {
+            return false;
+        }
+        return ["127.0.0.1", "localhost"].includes(window.location.hostname);
+    }
+    function buildLocalApiUrl(path) {
+        if (typeof window === "undefined" || !window.location?.origin) {
+            return path;
+        }
+        return `${window.location.origin}${path}`;
+    }
+    async function fetchSecureJsonWithLocalFallback(path, accessToken, preferLocalOnLocalhost = false) {
+        const requestInit = {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            cache: "no-store",
+        };
+        async function fetchJson(url) {
+            const response = await fetch(url, requestInit);
+            if (!response.ok) {
+                throw new Error(`secure request failed: ${response.status}`);
+            }
+            return response.json();
+        }
+        const useLocalFirst = preferLocalOnLocalhost && isLocalHostRuntime();
+        if (useLocalFirst) {
+            try {
+                return await fetchJson(buildLocalApiUrl(path));
+            }
+            catch (localError) {
+                try {
+                    return await fetchJson(buildApiUrl(path));
+                }
+                catch {
+                    throw localError;
+                }
+            }
+        }
+        try {
+            return await fetchJson(buildApiUrl(path));
+        }
+        catch (error) {
+            if (!isLocalHostRuntime()) {
+                throw error;
+            }
+            return fetchJson(buildLocalApiUrl(path));
+        }
+    }
+    function readSession() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                return null;
+            }
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed.access_token !== "string") {
+                return null;
+            }
+            return {
+                access_token: parsed.access_token,
+                assumed_plan: parsed.assumed_plan === "premium" ? "premium" : "free",
+                signed_in_at: parsed.signed_in_at || "",
+            };
+        }
+        catch (error) {
+            console.warn("site auth session load failed", error);
+            return null;
+        }
+    }
+    function writeSession(planKey) {
+        const session = {
+            access_token: planKey === "premium" ? "local-premium-session" : "local-free-session",
+            assumed_plan: planKey,
+            signed_in_at: new Date().toISOString(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        return session;
+    }
+    async function clearSupabaseSession() {
+        const client = await getSupabaseClient();
+        if (!client) {
+            return;
+        }
+        await client.auth.signOut();
+    }
+    function clearLocalSession() {
+        localStorage.removeItem(STORAGE_KEY);
+    }
+    function buildGuestStatus(source = "guest_local") {
+        return {
+            signed_in: false,
+            purchase_state: "not_started",
+            active_plan: "free",
+            user: null,
+            entitlements: [],
+            source,
+        };
+    }
+    async function getAccessToken() {
+        if (authMode === "supabase") {
+            if (!isSupabaseConfigured()) {
+                return null;
+            }
+            const client = await getSupabaseClient();
+            if (!client) {
+                return null;
+            }
+            const { data: { session }, } = await client.auth.getSession();
+            return session?.access_token || null;
+        }
+        return readSession()?.access_token || null;
+    }
+    async function buildSupabaseSignedInFallback(source = "secure_api_unavailable") {
+        const client = await getSupabaseClient();
+        const { data: { user }, } = client ? await client.auth.getUser() : { data: { user: null } };
+        return {
+            signed_in: true,
+            purchase_state: "not_started",
+            active_plan: "free",
+            user: {
+                user_id: user?.id || "supabase-user",
+                display_name: user?.user_metadata?.display_name || user?.user_metadata?.name || user?.email || "利用者",
+            },
+            entitlements: [],
+            source,
+        };
+    }
+    async function ensureSignedInStatusAfterAuth(source = "supabase_signed_in") {
+        const status = await fetchLicenseStatus();
+        if (status.signed_in) {
+            return status;
+        }
+        return buildSupabaseSignedInFallback(source);
+    }
+    async function fetchLicenseStatus() {
+        if (authMode === "supabase" && !isSupabaseConfigured()) {
+            console.warn("supabase auth mode is selected, but required config is missing");
+            return buildGuestStatus("supabase_config_missing");
+        }
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            if (authMode === "supabase") {
+                const client = await getSupabaseClient();
+                const { data: { user }, } = client ? await client.auth.getUser() : { data: { user: null } };
+                if (user) {
+                    return buildSupabaseSignedInFallback("supabase_session_syncing");
+                }
+            }
+            return buildGuestStatus(authMode === "supabase" ? "guest_supabase" : "guest_local");
+        }
+        let response;
+        try {
+            response = await fetch(buildApiUrl("/api/secure/license/status"), {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+                cache: "no-store",
+            });
+        }
+        catch (error) {
+            if (authMode === "supabase") {
+                console.warn("secure API unavailable, use signed-in fallback", error);
+                return buildSupabaseSignedInFallback();
+            }
+            throw error;
+        }
+        if (!response.ok) {
+            if (authMode === "supabase") {
+                console.warn(`license status request failed: ${response.status}; use signed-in fallback`);
+                return buildSupabaseSignedInFallback(`secure_api_${response.status}`);
+            }
+            throw new Error(`license status request failed: ${response.status}`);
+        }
+        const payload = (await response.json());
+        return {
+            ...payload,
+            active_plan: payload.active_plan === "premium" ? "premium" : "free",
+            entitlements: Array.isArray(payload.entitlements) ? payload.entitlements : [],
+        };
+    }
+    async function postSecure(path) {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            throw new Error("sign in required");
+        }
+        const response = await fetch(buildApiUrl(path), {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+            cache: "no-store",
+        });
+        if (!response.ok) {
+            let message = `secure post failed: ${response.status}`;
+            try {
+                const payload = await response.json();
+                if (payload?.error) {
+                    message = String(payload.error);
+                }
+            }
+            catch {
+                // ignore json parse failure
+            }
+            throw new Error(message);
+        }
+        return response.json();
+    }
+    async function fetchPremiumManifest(planCode = "grade3_premium") {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            throw new Error("sign in required");
+        }
+        return fetchSecureJsonWithLocalFallback(`/api/secure/premium/manifest?plan_code=${encodeURIComponent(planCode)}`, accessToken, true);
+    }
+    async function fetchPremiumQuestions(setId) {
+        const accessToken = await getAccessToken();
+        if (!accessToken) {
+            throw new Error("sign in required");
+        }
+        const suffix = setId ? `?set_id=${encodeURIComponent(setId)}` : "";
+        return fetchSecureJsonWithLocalFallback(`/api/secure/premium/questions${suffix}`, accessToken, true);
+    }
+    async function fetchSecureHealth() {
+        const response = await fetch(buildApiUrl("/api/secure/health"), {
+            method: "GET",
+            cache: "no-store",
+        });
+        if (!response.ok) {
+            throw new Error(`secure health request failed: ${response.status}`);
+        }
+        return response.json();
+    }
+    async function signInAs(planKey) {
+        if (authMode === "supabase") {
+            return buildGuestStatus("supabase_login_required");
+        }
+        writeSession(planKey);
+        try {
+            return await fetchLicenseStatus();
+        }
+        catch (error) {
+            console.warn("license status fetch after sign-in failed", error);
+            return {
+                signed_in: true,
+                purchase_state: planKey === "premium" ? "entitled" : "not_started",
+                active_plan: planKey,
+                user: {
+                    user_id: planKey === "premium" ? "local-premium-user" : "local-free-user",
+                    display_name: planKey === "premium" ? "プレミアム版ユーザー" : "無料版ユーザー",
+                },
+                entitlements: planKey === "premium"
+                    ? [{ code: "grade3_premium", status: "active", label: "3級プレミアム版" }]
+                    : [],
+                source: "local_session_fallback",
+            };
+        }
+    }
+    async function signUpWithEmail(email, password) {
+        if (authMode !== "supabase") {
+            throw new Error("sign up is only available in supabase mode");
+        }
+        const client = await getSupabaseClient();
+        if (!client) {
+            throw new Error("supabase client unavailable");
+        }
+        const { data, error } = await client.auth.signUp({
+            email,
+            password,
+            options: {
+                emailRedirectTo: `${window.location.origin}${runtimeConfig.loginPath || "/login/"}`,
+            },
+        });
+        if (error) {
+            throw error;
+        }
+        return data;
+    }
+    async function signInWithEmailPassword(email, password) {
+        if (authMode !== "supabase") {
+            throw new Error("email sign in is only available in supabase mode");
+        }
+        const client = await getSupabaseClient();
+        if (!client) {
+            throw new Error("supabase client unavailable");
+        }
+        const { error } = await client.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) {
+            throw error;
+        }
+        return ensureSignedInStatusAfterAuth("supabase_signin_completed");
+    }
+    async function signOut() {
+        clearLocalSession();
+        if (authMode === "supabase") {
+            await clearSupabaseSession();
+        }
+    }
+    window.SiteAuthClient = {
+        getMode: () => authMode,
+        isSupabaseConfigured,
+        fetchLicenseStatus,
+        fetchSecureHealth,
+        fetchPremiumManifest,
+        fetchPremiumQuestions,
+        signInAsFree: () => signInAs("free"),
+        signInAsPremium: () => signInAs("premium"),
+        signUpWithEmail,
+        signInWithEmailPassword,
+        startCheckout: () => postSecure("/api/secure/billing/checkout/start"),
+        completeCheckout: () => postSecure("/api/secure/billing/checkout/complete"),
+        signOut,
+        getStoredSession: readSession,
+    };
+})();
