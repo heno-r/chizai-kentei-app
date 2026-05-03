@@ -21,6 +21,14 @@
     return runtimeConfig.premiumPurchasePath || "/premium/ready/";
   }
 
+  function getPremiumGuidePath(): string {
+    return runtimeConfig.premiumGuidePath || "/premium/";
+  }
+
+  function isPurchaseEnabled(): boolean {
+    return runtimeConfig.purchaseEnabled !== false;
+  }
+
   function renderMessage(
     title: string,
     copy: string,
@@ -90,14 +98,16 @@
       }
       if (!status.signed_in) {
         renderMessage(
-          "無料版を試したあとは、ログインして次へ進めます",
-          "無料版の相性確認が済んだら、先にログインしておくと購入前チェックからそのまま進めます。",
+          isPurchaseEnabled() ? "無料版を試したあとは、ログインして次へ進めます" : "無料版を試しながら公開準備をお待ちください",
+          isPurchaseEnabled()
+            ? "無料版の相性確認が済んだら、先にログインしておくと購入前チェックからそのまま進めます。"
+            : "ログインはできますが、プレミアム版の購入受付は Stripe の本番審査が完了するまで一時停止しています。",
           false,
           {
             loginHref: buildLoginHref(),
             loginLabel: "ログインする",
-            upgradeHref: buildLoginHref(),
-            upgradeLabel: "ログインして購入準備へ進む",
+            upgradeHref: isPurchaseEnabled() ? buildLoginHref() : getPremiumGuidePath(),
+            upgradeLabel: isPurchaseEnabled() ? "ログインして購入準備へ進む" : "プレミアム版の案内を見る",
           },
         );
         return;
@@ -119,16 +129,18 @@
       }
 
       renderMessage(
-        "次は購入前チェックへ進めます",
-        status.purchase_state === "in_checkout"
-          ? "購入手続きの途中として記録されています。購入前チェックへ戻ると、そのまま続きから確認できます。"
-          : "ログイン済みなので、価格と機能を確認したらそのまま購入へ進めます。",
+        isPurchaseEnabled() ? "次は購入前チェックへ進めます" : "プレミアム版の購入受付は準備中です",
+        isPurchaseEnabled()
+          ? status.purchase_state === "in_checkout"
+            ? "購入手続きの途中として記録されています。購入前チェックへ戻ると、そのまま続きから確認できます。"
+            : "ログイン済みなので、価格と機能を確認したらそのまま購入へ進めます。"
+          : "ログイン済みです。プレミアム版の内容確認はできますが、購入受付は Stripe の本番審査が完了するまで一時停止しています。",
         true,
         {
           loginHref: buildLoginHref(),
           loginLabel: "ログイン状態を変更する",
-          upgradeHref: getPremiumReadyPath(),
-          upgradeLabel: "このまま購入前チェックへ進む",
+          upgradeHref: isPurchaseEnabled() ? getPremiumReadyPath() : getPremiumGuidePath(),
+          upgradeLabel: isPurchaseEnabled() ? "このまま購入前チェックへ進む" : "プレミアム版の案内を見る",
         },
       );
     } catch (error) {

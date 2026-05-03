@@ -12,6 +12,7 @@ interface AppRuntimeConfig {
   premiumPriceText?: string;
   loginPath?: string;
   appEntryPath?: string;
+  purchaseEnabled?: boolean;
   stripePublishableKey?: string;
   stripePriceId?: string;
   supportEmail?: string;

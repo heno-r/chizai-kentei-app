@@ -149,6 +149,9 @@ const focusWeakButton = document.getElementById("focus-weak-button");
 const retryWrongButton = document.getElementById("retry-wrong-button");
 const retryFlaggedButton = document.getElementById("retry-flagged-button");
 const restartButton = document.getElementById("restart-button");
+function isPurchaseEnabled() {
+    return RUNTIME_CONFIG.purchaseEnabled !== false;
+}
 function escapeHtml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -367,6 +370,11 @@ function getPremiumPriceText() {
     return RUNTIME_CONFIG.premiumPriceText || "3級プレミアム版 1,200円 / 追加月額料金なし";
 }
 function showPremiumPrompt(reasonText) {
+    if (!isPurchaseEnabled()) {
+        window.alert(`${reasonText}\n\nプレミアム版の購入受付は、Stripe の本番審査が完了するまで一時停止しています。いまは無料版とプレミアム版の案内ページを確認できます。`);
+        window.location.href = getPremiumGuidePath();
+        return;
+    }
     const shouldMove = window.confirm(`${reasonText}\n\n` +
         `プレミアム版では、3級の全問題、カテゴリ別学習、間違えた問題だけ復習、要復習キュー、` +
         `苦手カテゴリ分析、今日のおすすめ、直前14日モード、学習プランを利用できます。\n` +
@@ -448,14 +456,16 @@ function renderPlanState() {
             "追加問題、苦手復習、今日のおすすめ、直前14日モードまでそのまま使えます。";
     }
     else if (state.authStatus.signedIn) {
-        premiumUpsellTitle.textContent = "次は購入前チェックへ進む";
-        premiumUpsellCopy.textContent =
-            "無料版の相性確認が済んだら、ログイン済みのまま購入前チェックで価格と機能を確認できます。";
+        premiumUpsellTitle.textContent = isPurchaseEnabled() ? "次は購入前チェックへ進む" : "プレミアム版の購入受付は準備中です";
+        premiumUpsellCopy.textContent = isPurchaseEnabled()
+            ? "無料版の相性確認が済んだら、ログイン済みのまま購入前チェックで価格と機能を確認できます。"
+            : "無料版の相性確認とプレミアム版の案内確認はできますが、購入受付は Stripe の本番審査が完了するまで一時停止しています。";
     }
     else {
-        premiumUpsellTitle.textContent = "無料版の次は、ログインして購入準備へ進む";
-        premiumUpsellCopy.textContent =
-            "無料版で相性を確認したあとに、ログイン、購入前チェック、購入の順で進めます。";
+        premiumUpsellTitle.textContent = isPurchaseEnabled() ? "無料版の次は、ログインして購入準備へ進む" : "プレミアム版は公開準備中です";
+        premiumUpsellCopy.textContent = isPurchaseEnabled()
+            ? "無料版で相性を確認したあとに、ログイン、購入前チェック、購入の順で進めます。"
+            : "無料版はそのまま使えます。プレミアム版の購入受付は Stripe の本番審査が完了するまで一時停止しています。";
     }
     renderPremiumManifest();
     planButtons.forEach((button) => {

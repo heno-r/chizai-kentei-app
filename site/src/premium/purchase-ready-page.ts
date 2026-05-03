@@ -19,6 +19,7 @@
   const returnTargetMessage = document.getElementById("return-target-message") as HTMLElement | null;
   const faqButtons = Array.from(document.querySelectorAll<HTMLButtonElement>(".faq-toggle"));
   const isStripeCheckout = runtimeConfig.checkoutProvider === "stripe";
+  const purchaseEnabled = runtimeConfig.purchaseEnabled !== false;
   let currentStatus: LicenseStatusResponse | null = null;
 
   function getPremiumPriceText(): string {
@@ -35,6 +36,13 @@
 
   function getCheckoutProviderLabel(): string {
     return isStripeCheckout ? "Stripe" : "ローカル確認モード";
+  }
+
+  function showPurchasePausedMessage(target: HTMLElement | null): void {
+    showMessage(
+      target,
+      "プレミアム版の購入受付は、Stripe の本番審査が完了するまで一時停止しています。無料版とプレミアム版の案内はそのまま確認できます。",
+    );
   }
 
   function showMessage(target: HTMLElement | null, text: string): void {
@@ -120,6 +128,12 @@
         startCheckoutMessage,
         "この環境では購入手続きの再現がまだ使えません。ログイン導線の接続後にここから試せる想定です。",
       );
+      return;
+    }
+
+    if (!purchaseEnabled) {
+      showPurchasePausedMessage(startCheckoutMessage);
+      startCheckoutMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
       return;
     }
 
@@ -251,12 +265,14 @@
           loginPlaceholderButton.textContent = "1. ログインする";
         }
         if (startCheckoutButton) {
-          startCheckoutButton.textContent = "2. 購入手続きに進む";
+          startCheckoutButton.textContent = purchaseEnabled ? "2. 購入手続きに進む" : "購入受付は準備中です";
           startCheckoutButton.disabled = true;
         }
         showMessage(
           loginPlaceholderMessage,
-          "まだログインしていません。先にログインすると、このページの続きから購入手続きへ進めます。",
+          purchaseEnabled
+            ? "まだログインしていません。先にログインすると、このページの続きから購入手続きへ進めます。"
+            : "まだログインしていません。購入受付の再開までは、内容確認と無料版の体験を続けられます。",
         );
         return;
       }
@@ -266,7 +282,7 @@
         loginPlaceholderButton.disabled = true;
       }
       if (startCheckoutButton) {
-        startCheckoutButton.disabled = false;
+        startCheckoutButton.disabled = !purchaseEnabled;
       }
 
       if (status.active_plan === "premium") {
@@ -281,12 +297,14 @@
       }
 
       if (startCheckoutButton) {
-        startCheckoutButton.textContent = "2. この内容で購入手続きに進む";
+        startCheckoutButton.textContent = purchaseEnabled ? "2. この内容で購入手続きに進む" : "購入受付は準備中です";
       }
 
       showMessage(
         loginPlaceholderMessage,
-        "ログイン済みです。内容と価格に問題がなければ、そのまま購入手続きへ進めます。",
+        purchaseEnabled
+          ? "ログイン済みです。内容と価格に問題がなければ、そのまま購入手続きへ進めます。"
+          : "ログイン済みです。プレミアム版の案内は確認できますが、購入受付は一時停止しています。",
       );
     } catch (error) {
       console.warn("purchase ready license status load failed", error);
@@ -294,4 +312,9 @@
   }
 
   void renderCurrentLicenseStatus();
+
+  if (!purchaseEnabled && startCheckoutButton && !currentStatus?.signed_in) {
+    startCheckoutButton.textContent = "購入受付は準備中です";
+    startCheckoutButton.disabled = true;
+  }
 })();

@@ -12,6 +12,7 @@ PREMIUM_PRODUCT_CODE = "grade3_premium"
 PREMIUM_PRICE_JPY = "1200"
 APP_ENTRY_PATH = "/app/"
 PUBLIC_SITE_URL = "https://example.pages.dev"
+PURCHASE_ENABLED = "false"
 STRIPE_PRODUCT_NAME = "3級プレミアム版"
 PREMIUM_PLAN_REGISTRY_JSON = "{\"plans\":{\"grade3_premium\":{\"label\":\"3級プレミアム版\",\"recommended_entry_path\":\"/app/\",\"base_public_set_id\":\"grade3_mixed_priority_50\",\"merge_strategy\":\"append_non_duplicate\",\"question_sets\":[{\"set_id\":\"grade3_premium_combined_160\",\"delivery_mode\":\"append_non_duplicate\"},{\"set_id\":\"grade3_premium\",\"delivery_mode\":\"append_non_duplicate\"},{\"set_id\":\"grade3_official_style_100\",\"delivery_mode\":\"append_non_duplicate\"}],\"unlocked_features\":[\"category_mode\",\"retry_wrong\",\"weak_category_analysis\",\"flagged_queue\",\"today_recommendation\",\"final14_mode\",\"study_plan\",\"detailed_history\"]}}}"
 

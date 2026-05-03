@@ -38,8 +38,14 @@ Cloudflare Pages に載せる公開用ディレクトリです。ここには LP
 ## Cloudflare Pages の設定
 
 - Framework preset: `None`
-- Build command: 空欄、または必要なら `exit 0`
-- Build output directory: `site`
+- Root directory: `site`
+- Build command: `exit 0`
+- Build output directory: `.`
+
+補足:
+
+- `https://<project>.<account-subdomain>.workers.dev` は Worker 側の URL です
+- 利用者向けの公開フロントは `Pages` の `https://<project>.pages.dev` を使う前提で整理しています
 
 ## ローカル確認
 

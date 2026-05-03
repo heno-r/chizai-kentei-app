@@ -18,6 +18,7 @@ interface Env {
   STRIPE_WEBHOOK_SECRET?: string;
   STRIPE_PRODUCT_NAME?: string;
   PUBLIC_SITE_URL?: string;
+  PURCHASE_ENABLED?: string;
 }
 
 interface JwtClaims {
@@ -280,6 +281,17 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/secure/billing/checkout/start") {
+        if (!isPurchaseEnabled(env)) {
+          return jsonResponse(
+            request,
+            {
+              error: "purchases are temporarily disabled",
+              purchase_enabled: false,
+            },
+            403,
+          );
+        }
+
         const auth = await requireAuth(request, env, ctx);
         if (auth instanceof Response) {
           return auth;
@@ -462,6 +474,10 @@ function readBearerToken(request: Request): string {
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isPurchaseEnabled(env: Env): boolean {
+  return !["0", "false", "off"].includes(String(env.PURCHASE_ENABLED || "true").toLowerCase());
 }
 
 async function requireAuth(request: Request, env: Env, ctx: ExecutionContext): Promise<AuthContext | Response> {

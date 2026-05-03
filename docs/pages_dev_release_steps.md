@@ -9,6 +9,18 @@
 
 をつなぐための最短手順です。
 
+## 0. 最初に確認すること
+
+利用者に見せる公開 URL は `Pages` 側に寄せます。
+
+- 正しい公開フロント URL の例
+  - `https://shiken-junbishitsu-chizai3.pages.dev`
+- secure API Worker の URL の例
+  - `https://chizai-kentei-secure-api.<account-subdomain>.workers.dev`
+
+もし `https://<name>.<account-subdomain>.workers.dev` が出ているなら、それは `Worker` 側の URL です。  
+このままでも動作確認はできますが、利用者向けの正式公開 URL としては `Pages` を別で作る前提で進めます。
+
 ## 1. Pages プロジェクトを作る
 
 Cloudflare Dashboard で次を開きます。
