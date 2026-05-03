@@ -19,6 +19,7 @@ interface Env {
   STRIPE_PRODUCT_NAME?: string;
   PUBLIC_SITE_URL?: string;
   PURCHASE_ENABLED?: string;
+  ADMIN_API_TOKEN?: string;
 }
 
 interface JwtClaims {
@@ -163,6 +164,99 @@ export default {
           ok: true,
           service: "secure_api_worker",
           timestamp: new Date().toISOString(),
+        });
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/secure/admin/contact-messages") {
+        const adminResponse = requireAdminToken(request, env);
+        if (adminResponse instanceof Response) {
+          return adminResponse;
+        }
+
+        const requestedLimit = Number.parseInt(url.searchParams.get("limit") || "50", 10);
+        const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(200, requestedLimit)) : 50;
+        const result = await env.LICENSE_DB.prepare(
+          `
+          SELECT
+            id,
+            name,
+            reply_email,
+            message,
+            status,
+            source_page,
+            user_agent,
+            created_at,
+            updated_at
+          FROM contact_messages
+          ORDER BY created_at DESC
+          LIMIT ?
+          `,
+        )
+          .bind(limit)
+          .all<Record<string, unknown>>();
+
+        return jsonResponse(request, {
+          ok: true,
+          messages: result.results ?? [],
+          count: (result.results ?? []).length,
+        });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/secure/admin/contact-messages/status") {
+        const adminResponse = requireAdminToken(request, env);
+        if (adminResponse instanceof Response) {
+          return adminResponse;
+        }
+
+        const payload = (await request.json()) as Record<string, unknown>;
+        const messageId = String(payload?.id || "").trim();
+        const status = String(payload?.status || "").trim();
+        const allowedStatuses = new Set(["new", "in_progress", "done"]);
+
+        if (!messageId) {
+          return jsonResponse(request, { error: "id is required" }, 400);
+        }
+        if (!allowedStatuses.has(status)) {
+          return jsonResponse(request, { error: "status must be one of new, in_progress, done" }, 400);
+        }
+
+        const updateResult = await env.LICENSE_DB.prepare(
+          `
+          UPDATE contact_messages
+          SET status = ?, updated_at = datetime('now')
+          WHERE id = ?
+          `,
+        )
+          .bind(status, messageId)
+          .run();
+
+        const changed = Number(updateResult.meta?.changes ?? 0);
+        if (changed < 1) {
+          return jsonResponse(request, { error: "contact message not found" }, 404);
+        }
+
+        const row = await env.LICENSE_DB.prepare(
+          `
+          SELECT
+            id,
+            name,
+            reply_email,
+            message,
+            status,
+            source_page,
+            user_agent,
+            created_at,
+            updated_at
+          FROM contact_messages
+          WHERE id = ?
+          `,
+        )
+          .bind(messageId)
+          .first<Record<string, unknown>>();
+
+        return jsonResponse(request, {
+          ok: true,
+          message: row ?? null,
         });
       }
 
@@ -448,6 +542,20 @@ function jsonResponse(request: Request, payload: unknown, status = 200): Respons
       },
     }),
   );
+}
+
+function requireAdminToken(request: Request, env: Env): true | Response {
+  const configuredToken = (env.ADMIN_API_TOKEN || "").trim();
+  if (!configuredToken) {
+    return jsonResponse(request, { error: "admin access is not configured" }, 503);
+  }
+
+  const providedToken = (request.headers.get("x-admin-token") || "").trim();
+  if (!providedToken || providedToken !== configuredToken) {
+    return jsonResponse(request, { error: "admin token is invalid" }, 403);
+  }
+
+  return true;
 }
 
 function withCors(request: Request, response: Response): Response {

@@ -74,7 +74,7 @@
         needTrialMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     loginPlaceholderButton?.addEventListener("click", () => {
-        showMessage(loginPlaceholderMessage, "ログイン画面へ進みます。購入前チェックの続きや、購入済み状態の確認はログイン後にそのまま続けられる想定です。");
+        showMessage(loginPlaceholderMessage, "ログイン画面へ進みます。購入前チェックの続きや、購入済み状態の確認はログイン後にそのまま続けられます。");
         loginPlaceholderMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         window.setTimeout(() => {
             const target = new URL(getLoginPath(), window.location.origin);
@@ -83,12 +83,12 @@
         }, 250);
     });
     loginFlowButton?.addEventListener("click", () => {
-        showMessage(loginFlowMessage, "想定している流れは『無料版を試す -> 購入前チェックでログイン -> 購入または購入済み確認 -> プレミアム版の機能を解放』です。ログイン後の戻り先は購入前チェックページかプレミアム版案内ページを想定しています。");
+        showMessage(loginFlowMessage, "流れは『無料版を試す -> 購入前チェックでログイン -> 購入または購入済み確認 -> プレミアム版の機能を解放』です。ログイン後は購入前チェックページかプレミアム版案内ページへ戻れます。");
         loginFlowMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     startCheckoutButton?.addEventListener("click", async () => {
         if (!authClient?.startCheckout) {
-            showMessage(startCheckoutMessage, "この環境では購入手続きの再現がまだ使えません。ログイン導線の接続後にここから試せる想定です。");
+            showMessage(startCheckoutMessage, "この環境では購入手続きの再現がまだ使えません。接続状態を確認してから、もう一度お試しください。");
             return;
         }
         if (!purchaseEnabled) {
@@ -131,7 +131,7 @@
     });
     simulatePurchaseButton?.addEventListener("click", async () => {
         if (!authClient?.completeCheckout) {
-            showMessage(simulatePurchaseMessage, "この環境では購入後状態の再現がまだ使えません。ログイン導線の接続後にここから試せる想定です。");
+            showMessage(simulatePurchaseMessage, "この環境では購入後状態の再現がまだ使えません。接続状態を確認してから、もう一度お試しください。");
             return;
         }
         const signedIn = await requireSignedIn(simulatePurchaseMessage);
@@ -154,11 +154,11 @@
         }
     });
     purchaseStateButton?.addEventListener("click", () => {
-        showMessage(purchaseStateMessage, "購入状態は『未購入 -> 購入中 -> 購入成功 -> ライセンス反映済み』の4段で考えます。決済完了直後は、短時間だけ反映確認中の表示を許容する想定です。");
+        showMessage(purchaseStateMessage, "購入状態は『未購入 -> 購入中 -> 購入成功 -> ライセンス反映済み』の4段で考えます。決済完了直後は、短時間だけ反映確認中の表示が出ることがあります。");
         purchaseStateMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     returnTargetButton?.addEventListener("click", () => {
-        showMessage(returnTargetMessage, "購入後の主な戻り先は無料版アプリです。プレミアム版が解放された状態で `/app/` に戻し、そのまま苦手復習や要復習キューへ入れる導線を想定しています。");
+        showMessage(returnTargetMessage, "購入後の主な戻り先は無料版アプリです。プレミアム版が解放された状態で `/app/` に戻り、そのまま苦手復習や要復習キューへ進めます。");
         returnTargetMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     faqButtons.forEach((button) => {

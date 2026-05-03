@@ -26,6 +26,7 @@ Cloudflare Workers 前提の secure API 雛形です。
 - `PREMIUM_PLAN_REGISTRY_JSON`
 - `STRIPE_PRICE_ID`
 - `STRIPE_WEBHOOK_SECRET`
+- `ADMIN_API_TOKEN`
 
 ## ルート
 
@@ -33,6 +34,7 @@ Cloudflare Workers 前提の secure API 雛形です。
 - `GET /api/secure/license/status`
 - `GET /api/secure/premium/manifest`
 - `GET /api/secure/premium/questions?set_id=...`
+- `GET /api/secure/admin/contact-messages`
 - `POST /api/secure/billing/checkout/start`
 - `POST /api/secure/billing/webhook`
 
@@ -54,4 +56,5 @@ Cloudflare Workers 前提の secure API 雛形です。
 
 - この雛形は public repo に置いてよいコードだけで構成しています
 - 本番では Stripe や Supabase の秘密情報を repo に含めません
+- 管理用の問い合わせ一覧を読むときは `ADMIN_API_TOKEN` を Worker とローカル設定の両方に入れます
 - 購入完了後の entitlement 付与ロジックは webhook 側で実装する前提です

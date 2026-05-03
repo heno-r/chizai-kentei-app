@@ -50,7 +50,7 @@
   purchaseFlowButton?.addEventListener("click", () => {
     showMessage(
       flowMessage,
-      "おすすめの流れは『無料版で相性確認 -> プレミアム版を使い始める -> 苦手復習を回す -> 試験2週間前に直前14日モードへ移行』です。購入直後に全部を見るのではなく、まず苦手復習から使い始める想定です。",
+      "おすすめの流れは『無料版で相性確認 -> プレミアム版を使い始める -> 苦手復習を回す -> 試験2週間前に直前14日モードへ移行』です。購入直後に全部を見るのではなく、まず苦手復習から使い始める流れです。",
     );
     flowMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
@@ -58,7 +58,7 @@
   deviceCheckButton?.addEventListener("click", () => {
     showMessage(
       deviceMessage,
-      "最終版は iPhone / Android を主対象にしつつ、購入前の確認や無料体験は PC ブラウザでも見られる構成を想定しています。オフライン対応は後回しにして、まずはオンラインで安定して使えることを優先します。",
+      "iPhone / Android を主対象にしつつ、購入前の確認や無料体験は PC ブラウザでも見られるようにしています。オフライン対応は後回しにして、まずはオンラインで安定して使えることを優先しています。",
     );
     deviceMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });

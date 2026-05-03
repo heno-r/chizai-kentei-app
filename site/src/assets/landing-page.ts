@@ -34,7 +34,7 @@
   purchaseCheckButton?.addEventListener("click", () => {
     showMessage(
       purchaseMessage,
-      `購入前は、価格 (${getPremiumPriceText()}), 解放される機能, 対応端末, 返金や問い合わせの案内を確認してから進む想定です。購入前チェックページへ移動します。`,
+      `購入前は、価格 (${getPremiumPriceText()}), 解放される機能, 対応端末, 返金や問い合わせの案内を確認してから進めます。購入前チェックページへ移動します。`,
     );
     purchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     window.setTimeout(() => {

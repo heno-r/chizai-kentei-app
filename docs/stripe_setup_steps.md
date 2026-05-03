@@ -129,3 +129,11 @@ webhook 成功時にやること:
 - 成功後 return
 - `/app/` でプレミアム解放
 - 再ログイン後も維持される
+
+## 10. 返金時の運用
+
+返金が必要になった場合は、Stripe 上で返金したあとに D1 の `orders / entitlements` も整理します。
+
+参照:
+
+- [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md)

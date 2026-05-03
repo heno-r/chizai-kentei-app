@@ -77,3 +77,9 @@ LIMIT 20;
 - `contact_messages` に保存されているか
 - `reply_email` が意図どおり保存されているか
 - 営業時間や返信目安など、必要な案内を追加するか
+
+## 6. 公開後の確認先
+
+- 本番問い合わせの確認と状態更新は:
+  - [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_operation_steps.md)
+- `review_tool` の `本番問い合わせ` から `new / in_progress / done` を更新する

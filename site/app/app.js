@@ -378,7 +378,7 @@ function showPremiumPrompt(reasonText) {
     const shouldMove = window.confirm(`${reasonText}\n\n` +
         `プレミアム版では、3級の全問題、カテゴリ別学習、間違えた問題だけ復習、要復習キュー、` +
         `苦手カテゴリ分析、今日のおすすめ、直前14日モード、学習プランを利用できます。\n` +
-        `想定価格: ${getPremiumPriceText()}\n\n` +
+        `価格: ${getPremiumPriceText()}\n\n` +
         `OK を押すと、${state.authStatus.signedIn ? "購入前チェック" : "ログイン"}へ進みます。`);
     if (!shouldMove) {
         return;

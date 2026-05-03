@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -9,6 +10,9 @@ import sys
 import tkinter as tk
 import tkinter.font as tkfont
 from tkinter import messagebox, ttk
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -21,6 +25,8 @@ from content_admin.debug_content_db import (
     delete_set as delete_db_set,
     get_premium_plan_membership as get_db_premium_plan_membership,
     load_batches as load_db_batches,
+    load_contact_message_detail as load_db_contact_message_detail,
+    load_contact_messages as load_db_contact_messages,
     load_set_detail as load_db_set_detail,
     load_sets as load_db_sets,
     load_summary as load_db_summary,
@@ -39,6 +45,13 @@ SHARED_DIR = BASE_DIR.parent / "shared_content"
 QUESTION_PATH = SHARED_DIR / "first_release_question_packets_enriched.json"
 TRACKER_PATH = SHARED_DIR / "first_release_review_tracker.csv"
 FILL_TEMPLATE_PATH = SHARED_DIR / "human_review_fill_template.csv"
+CONTACT_VIEWER_CONFIG_PATH = BASE_DIR / "contact_viewer_config.local.json"
+DEFAULT_CONTACT_VIEWER_API_BASE = "https://chizai-kentei-secure-api.henohenomoheji1202apps.workers.dev"
+CONTACT_VIEWER_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/136.0.0.0 Safari/537.36"
+)
 
 DECISION_LABELS = {
     "approve": "承認",
@@ -100,6 +113,24 @@ def _dataset_label(dataset_key: str) -> str:
     return get_dataset_spec(dataset_key).label
 
 
+def _load_contact_viewer_config() -> dict:
+    api_base_url = os.environ.get("CONTACT_VIEWER_API_BASE", "").strip()
+    admin_token = os.environ.get("CONTACT_VIEWER_ADMIN_TOKEN", "").strip()
+
+    if CONTACT_VIEWER_CONFIG_PATH.exists():
+        try:
+            payload = json.loads(CONTACT_VIEWER_CONFIG_PATH.read_text(encoding="utf-8"))
+            api_base_url = str(payload.get("api_base_url") or api_base_url).strip()
+            admin_token = str(payload.get("admin_token") or admin_token).strip()
+        except json.JSONDecodeError:
+            pass
+
+    return {
+        "api_base_url": api_base_url or DEFAULT_CONTACT_VIEWER_API_BASE,
+        "admin_token": admin_token,
+    }
+
+
 class ReviewApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -144,7 +175,12 @@ class ReviewApp:
         self.db_summary_var = tk.StringVar(value="")
         self.db_sets_tree: ttk.Treeview | None = None
         self.db_batches_tree: ttk.Treeview | None = None
+        self.db_contacts_tree: ttk.Treeview | None = None
         self.db_detail_text: tk.Text | None = None
+        self.production_contact_window: tk.Toplevel | None = None
+        self.production_contact_summary_var = tk.StringVar(value="")
+        self.production_contacts_tree: ttk.Treeview | None = None
+        self.production_contact_detail_text: tk.Text | None = None
         self.db_edit_set_id_var = tk.StringVar(value="")
         self.db_edit_label_var = tk.StringVar(value="")
         self.db_edit_tag_var = tk.StringVar(value="")
@@ -260,7 +296,7 @@ class ReviewApp:
 
         top = ttk.Frame(self.root, padding=12)
         top.grid(row=0, column=0, columnspan=2, sticky="ew")
-        for col in range(12):
+        for col in range(13):
             top.columnconfigure(col, weight=1 if col in (1, 3, 5, 7) else 0)
 
         ttk.Label(top, text="データ").grid(row=0, column=0, sticky="w")
@@ -348,6 +384,9 @@ class ReviewApp:
         ttk.Button(top, text="承認分をDBへ反映", command=self._publish_approved_to_db).grid(row=0, column=9, sticky="e", padx=(0, 8))
         ttk.Button(top, text="保存", command=self._save_current_review).grid(row=0, column=10, sticky="e", padx=(0, 8))
         ttk.Button(top, text="再読み込み", command=self._reload_all).grid(row=0, column=11, sticky="e")
+        ttk.Button(top, text="本番問い合わせ", command=self._open_production_contact_viewer).grid(
+            row=0, column=12, sticky="e", padx=(8, 0)
+        )
 
         left = ttk.Frame(self.root, padding=(12, 0, 8, 12))
         left.grid(row=1, column=0, sticky="ns")
@@ -436,6 +475,7 @@ class ReviewApp:
         bottom.columnconfigure(0, weight=1)
         ttk.Label(bottom, textvariable=self.status_var).grid(row=0, column=0, sticky="w")
         ttk.Button(bottom, text="DBビューア", command=self._open_db_viewer).grid(row=0, column=1, padx=(0, 6))
+        ttk.Button(bottom, text="本番問い合わせ", command=self._open_production_contact_viewer).grid(row=0, column=2, padx=(0, 6))
         ttk.Button(bottom, text="前へ", command=self._move_previous).grid(row=0, column=2, padx=(0, 6))
         ttk.Button(bottom, text="次へ", command=self._move_next).grid(row=0, column=3)
 
@@ -814,6 +854,284 @@ class ReviewApp:
             pass
         return "break"
 
+    def _fetch_production_contact_messages(self, limit: int = 100) -> list[dict]:
+        config = _load_contact_viewer_config()
+        admin_token = config["admin_token"]
+        if not admin_token:
+            raise RuntimeError(
+                "review_tool/contact_viewer_config.local.json に admin_token を設定してください。"
+            )
+
+        base_url = config["api_base_url"].rstrip("/")
+        query = urllib_parse.urlencode({"limit": str(limit)})
+        endpoint = f"{base_url}/api/secure/admin/contact-messages?{query}"
+        request = urllib_request.Request(
+            endpoint,
+            headers={
+                "x-admin-token": admin_token,
+                "accept": "application/json",
+                "accept-language": "ja,en-US;q=0.9,en;q=0.8",
+                "cache-control": "no-cache",
+                "pragma": "no-cache",
+                "referer": "https://shiken-junbishitsu-chizai3.pages.dev/",
+                "user-agent": CONTACT_VIEWER_USER_AGENT,
+            },
+            method="GET",
+        )
+
+        try:
+            with urllib_request.urlopen(request, timeout=15) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib_error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            try:
+                parsed = json.loads(detail)
+            except json.JSONDecodeError:
+                parsed = None
+
+            if error.code == 403:
+                message = "本番問い合わせAPIの呼び出しに失敗しました: HTTP 403。ADMIN_API_TOKEN が Worker 側と一致していません。"
+                if isinstance(parsed, dict) and parsed.get("error"):
+                    message += f"\n詳細: {parsed['error']}"
+                raise RuntimeError(message) from error
+
+            raise RuntimeError(f"本番問い合わせAPIの呼び出しに失敗しました: HTTP {error.code} {detail}") from error
+        except urllib_error.URLError as error:
+            raise RuntimeError(f"本番問い合わせAPIへ接続できませんでした: {error.reason}") from error
+
+        messages = payload.get("messages")
+        if not isinstance(messages, list):
+            raise RuntimeError("本番問い合わせAPIのレスポンスが想定と異なります。")
+        return [item for item in messages if isinstance(item, dict)]
+
+    def _update_production_contact_status(self, message_id: str, status: str) -> dict:
+        config = _load_contact_viewer_config()
+        admin_token = config["admin_token"]
+        if not admin_token:
+            raise RuntimeError(
+                "review_tool/contact_viewer_config.local.json に admin_token を設定してください。"
+            )
+
+        base_url = config["api_base_url"].rstrip("/")
+        endpoint = f"{base_url}/api/secure/admin/contact-messages/status"
+        payload = json.dumps({"id": message_id, "status": status}, ensure_ascii=False).encode("utf-8")
+        request = urllib_request.Request(
+            endpoint,
+            data=payload,
+            headers={
+                "x-admin-token": admin_token,
+                "accept": "application/json",
+                "accept-language": "ja,en-US;q=0.9,en;q=0.8",
+                "cache-control": "no-cache",
+                "pragma": "no-cache",
+                "referer": "https://shiken-junbishitsu-chizai3.pages.dev/",
+                "user-agent": CONTACT_VIEWER_USER_AGENT,
+                "content-type": "application/json",
+            },
+            method="POST",
+        )
+
+        try:
+            with urllib_request.urlopen(request, timeout=15) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except urllib_error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"状態更新に失敗しました: HTTP {error.code} {detail}") from error
+        except urllib_error.URLError as error:
+            raise RuntimeError(f"状態更新APIへ接続できませんでした: {error.reason}") from error
+
+        message = result.get("message")
+        if not isinstance(message, dict):
+            raise RuntimeError("状態更新APIのレスポンスが想定と異なります。")
+        return message
+
+    def _open_production_contact_viewer(self) -> None:
+        if self.production_contact_window is not None and self.production_contact_window.winfo_exists():
+            self.production_contact_window.deiconify()
+            self.production_contact_window.lift()
+            self._refresh_production_contact_viewer()
+            return
+
+        window = tk.Toplevel(self.root)
+        window.title("本番問い合わせビューア")
+        window.geometry("1040x700")
+        window.minsize(900, 560)
+        window.columnconfigure(0, weight=1)
+        window.rowconfigure(1, weight=1)
+        window.rowconfigure(2, weight=1)
+        window.protocol("WM_DELETE_WINDOW", self._close_production_contact_viewer)
+        self.production_contact_window = window
+
+        top = ttk.Frame(window, padding=12)
+        top.grid(row=0, column=0, sticky="ew")
+        top.columnconfigure(0, weight=1)
+        ttk.Label(top, text="本番問い合わせ概要").grid(row=0, column=0, sticky="w")
+        ttk.Label(top, textvariable=self.production_contact_summary_var).grid(
+            row=1, column=0, sticky="w", pady=(6, 0)
+        )
+        action_frame = ttk.Frame(top)
+        action_frame.grid(row=0, column=1, rowspan=2, sticky="e")
+        ttk.Button(action_frame, text="再読み込み", command=self._refresh_production_contact_viewer).grid(
+            row=0, column=0, padx=(0, 6)
+        )
+        ttk.Button(action_frame, text="未対応へ戻す", command=lambda: self._set_selected_production_contact_status("new")).grid(
+            row=0, column=1, padx=(0, 6)
+        )
+        ttk.Button(action_frame, text="対応中", command=lambda: self._set_selected_production_contact_status("in_progress")).grid(
+            row=0, column=2, padx=(0, 6)
+        )
+        ttk.Button(action_frame, text="対応済み", command=lambda: self._set_selected_production_contact_status("done")).grid(
+            row=0, column=3
+        )
+
+        list_frame = ttk.LabelFrame(window, text="本番問い合わせ", padding=8)
+        list_frame.grid(row=1, column=0, sticky="nsew", padx=12)
+        list_frame.columnconfigure(0, weight=1)
+        list_frame.rowconfigure(0, weight=1)
+        contacts_tree = ttk.Treeview(
+            list_frame,
+            columns=("created_at", "name", "reply_email", "status"),
+            show="headings",
+            height=14,
+        )
+        contacts_tree.heading("created_at", text="受信日時")
+        contacts_tree.heading("name", text="名前")
+        contacts_tree.heading("reply_email", text="返信先")
+        contacts_tree.heading("status", text="状態")
+        contacts_tree.column("created_at", width=170, anchor="w")
+        contacts_tree.column("name", width=120, anchor="w")
+        contacts_tree.column("reply_email", width=220, anchor="w")
+        contacts_tree.column("status", width=80, anchor="center")
+        contacts_tree.grid(row=0, column=0, sticky="nsew")
+        contact_scroll = ttk.Scrollbar(list_frame, orient="vertical", command=contacts_tree.yview)
+        contact_scroll.grid(row=0, column=1, sticky="ns")
+        contacts_tree.configure(yscrollcommand=contact_scroll.set)
+        contacts_tree.bind("<<TreeviewSelect>>", self._on_production_contact_selected)
+        self.production_contacts_tree = contacts_tree
+
+        detail_frame = ttk.LabelFrame(window, text="問い合わせ詳細", padding=10)
+        detail_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=(10, 12))
+        detail_frame.columnconfigure(0, weight=1)
+        detail_frame.rowconfigure(0, weight=1)
+        detail_text = tk.Text(detail_frame, wrap="word", font=self.detail_font)
+        detail_text.grid(row=0, column=0, sticky="nsew")
+        detail_scroll = ttk.Scrollbar(detail_frame, orient="vertical", command=detail_text.yview)
+        detail_scroll.grid(row=0, column=1, sticky="ns")
+        detail_text.configure(yscrollcommand=detail_scroll.set, state="disabled")
+        self._bind_zoomable_text(detail_text, self.detail_font)
+        self.production_contact_detail_text = detail_text
+
+        self._set_production_contact_detail_text("本番問い合わせを選ぶと、ここに詳細を表示します。")
+        self._refresh_production_contact_viewer()
+
+    def _close_production_contact_viewer(self) -> None:
+        if self.production_contact_window is not None and self.production_contact_window.winfo_exists():
+            self.production_contact_window.destroy()
+        self.production_contact_window = None
+        self.production_contacts_tree = None
+        self.production_contact_detail_text = None
+
+    def _refresh_production_contact_viewer(self) -> None:
+        if self.production_contact_window is None or not self.production_contact_window.winfo_exists():
+            return
+        assert self.production_contacts_tree is not None
+
+        try:
+            messages = self._fetch_production_contact_messages(100)
+        except Exception as error:
+            self.production_contact_summary_var.set(str(error))
+            self.production_contacts_tree.delete(*self.production_contacts_tree.get_children())
+            self._set_production_contact_detail_text(
+                "本番問い合わせの読み込みに失敗しました。\n\n"
+                "contact_viewer_config.local.json と Worker 側の ADMIN_API_TOKEN を確認してください。"
+            )
+            return
+
+        current_selection = self.production_contacts_tree.selection()
+        selected_message_id = current_selection[0] if current_selection else None
+        self.production_contact_summary_var.set(f"本番問い合わせ {len(messages)}件")
+
+        self.production_contacts_tree.delete(*self.production_contacts_tree.get_children())
+        for item in messages:
+            message_id = str(item.get("id", ""))
+            if not message_id:
+                continue
+            self.production_contacts_tree.insert(
+                "",
+                "end",
+                iid=message_id,
+                values=(
+                    item.get("created_at", ""),
+                    item.get("name", ""),
+                    item.get("reply_email", ""),
+                    item.get("status", ""),
+                ),
+            )
+
+        if selected_message_id and self.production_contacts_tree.exists(selected_message_id):
+            self.production_contacts_tree.selection_set(selected_message_id)
+            self._render_production_contact_detail()
+        else:
+            self._set_production_contact_detail_text("本番問い合わせを選ぶと、ここに詳細を表示します。")
+
+    def _on_production_contact_selected(self, _event: object) -> None:
+        self._render_production_contact_detail()
+
+    def _set_selected_production_contact_status(self, status: str) -> None:
+        if self.production_contacts_tree is None:
+            return
+        selection = self.production_contacts_tree.selection()
+        if not selection:
+            messagebox.showwarning("対象なし", "状態を変更する問い合わせを選択してください。")
+            return
+
+        message_id = selection[0]
+        try:
+            updated_message = self._update_production_contact_status(message_id, status)
+        except Exception as error:
+            messagebox.showerror("更新失敗", str(error))
+            return
+
+        self.production_contact_summary_var.set(f"本番問い合わせの状態を更新しました: {updated_message.get('status', status)}")
+        self._refresh_production_contact_viewer()
+        if self.production_contacts_tree.exists(message_id):
+            self.production_contacts_tree.selection_set(message_id)
+            self._render_production_contact_detail()
+
+    def _render_production_contact_detail(self) -> None:
+        if self.production_contacts_tree is None or self.production_contact_detail_text is None:
+            return
+        selection = self.production_contacts_tree.selection()
+        if not selection:
+            return
+
+        selected_id = selection[0]
+        try:
+            messages = self._fetch_production_contact_messages(100)
+        except Exception as error:
+            self._set_production_contact_detail_text(f"本番問い合わせの読み込みに失敗しました: {error}")
+            return
+
+        detail = next((item for item in messages if str(item.get("id", "")) == selected_id), None)
+        if detail is None:
+            self._set_production_contact_detail_text("選択した問い合わせが見つかりませんでした。")
+            return
+
+        lines = [
+            f"id: {detail.get('id', '')}",
+            f"受信日時: {detail.get('created_at', '')}",
+            f"更新日時: {detail.get('updated_at', '')}",
+            f"状態: {detail.get('status', '')}",
+            f"名前: {detail.get('name', '')}",
+            f"返信先: {detail.get('reply_email', '')}",
+            f"送信元ページ: {detail.get('source_page', '') or '-'}",
+            f"User-Agent: {detail.get('user_agent', '') or '-'}",
+            "",
+            "本文:",
+            str(detail.get("message", "")),
+        ]
+        self._set_production_contact_detail_text("\n".join(lines))
+
     def _open_db_viewer(self) -> None:
         if self.db_viewer_window is not None and self.db_viewer_window.winfo_exists():
             self.db_viewer_window.deiconify()
@@ -841,7 +1159,7 @@ class ReviewApp:
         middle = ttk.Panedwindow(window, orient="horizontal")
         middle.grid(row=1, column=0, sticky="nsew", padx=12)
 
-        set_frame = ttk.LabelFrame(middle, text="question_sets", padding=8)
+        set_frame = ttk.LabelFrame(middle, text="公開セット", padding=8)
         set_frame.columnconfigure(0, weight=1)
         set_frame.rowconfigure(0, weight=1)
         sets_tree = ttk.Treeview(
@@ -868,7 +1186,7 @@ class ReviewApp:
         self.db_sets_tree = sets_tree
         middle.add(set_frame, weight=3)
 
-        batch_frame = ttk.LabelFrame(middle, text="publish_batches", padding=8)
+        batch_frame = ttk.LabelFrame(middle, text="公開履歴", padding=8)
         batch_frame.columnconfigure(0, weight=1)
         batch_frame.rowconfigure(0, weight=1)
         batches_tree = ttk.Treeview(
@@ -894,7 +1212,32 @@ class ReviewApp:
         self.db_batches_tree = batches_tree
         middle.add(batch_frame, weight=2)
 
-        detail_frame = ttk.LabelFrame(window, text="選択中セットの詳細", padding=10)
+        contact_frame = ttk.LabelFrame(middle, text="ローカル問い合わせ", padding=8)
+        contact_frame.columnconfigure(0, weight=1)
+        contact_frame.rowconfigure(0, weight=1)
+        contacts_tree = ttk.Treeview(
+            contact_frame,
+            columns=("created_at", "name", "reply_email", "status"),
+            show="headings",
+            height=12,
+        )
+        contacts_tree.heading("created_at", text="受信日時")
+        contacts_tree.heading("name", text="名前")
+        contacts_tree.heading("reply_email", text="返信先")
+        contacts_tree.heading("status", text="状態")
+        contacts_tree.column("created_at", width=150, anchor="w")
+        contacts_tree.column("name", width=120, anchor="w")
+        contacts_tree.column("reply_email", width=180, anchor="w")
+        contacts_tree.column("status", width=70, anchor="center")
+        contacts_tree.grid(row=0, column=0, sticky="nsew")
+        contact_scroll = ttk.Scrollbar(contact_frame, orient="vertical", command=contacts_tree.yview)
+        contact_scroll.grid(row=0, column=1, sticky="ns")
+        contacts_tree.configure(yscrollcommand=contact_scroll.set)
+        contacts_tree.bind("<<TreeviewSelect>>", self._on_db_contact_selected)
+        self.db_contacts_tree = contacts_tree
+        middle.add(contact_frame, weight=2)
+
+        detail_frame = ttk.LabelFrame(window, text="選択中項目の詳細", padding=10)
         detail_frame.grid(row=2, column=0, sticky="nsew", padx=12, pady=(10, 12))
         detail_frame.columnconfigure(0, weight=1)
         detail_frame.rowconfigure(1, weight=1)
@@ -970,6 +1313,7 @@ class ReviewApp:
         self._bind_zoomable_text(detail_text, self.detail_font)
         self.db_detail_text = detail_text
 
+        self._set_db_detail_text("セットまたは問い合わせを選ぶと、ここに詳細を表示します。")
         self._refresh_db_viewer()
 
     def _close_db_viewer(self) -> None:
@@ -978,6 +1322,7 @@ class ReviewApp:
         self.db_viewer_window = None
         self.db_sets_tree = None
         self.db_batches_tree = None
+        self.db_contacts_tree = None
         self.db_detail_text = None
 
     def _refresh_db_viewer(self) -> None:
@@ -985,12 +1330,14 @@ class ReviewApp:
             return
         assert self.db_sets_tree is not None
         assert self.db_batches_tree is not None
+        assert self.db_contacts_tree is not None
 
         try:
             with connect_content_db(DEFAULT_DB_PATH) as connection:
                 summary = load_db_summary(connection)
                 sets = load_db_sets(connection)
                 batches = load_db_batches(connection, 20)
+                contacts = load_db_contact_messages(connection, 50)
         except Exception as error:
             self.db_summary_var.set(f"DBの読み込みに失敗しました: {error}")
             return
@@ -1007,6 +1354,8 @@ class ReviewApp:
                     f"公開履歴 {summary['publish_batches']}",
                     f"ユーザー {summary.get('users', 0)}",
                     f"有効権利 {summary.get('active_entitlements', 0)}",
+                    f"問い合わせ {summary.get('contact_messages', 0)}",
+                    f"未対応 {summary.get('new_contact_messages', 0)}",
                     f"DB: {DEFAULT_DB_PATH.name}",
                 ]
             )
@@ -1014,6 +1363,8 @@ class ReviewApp:
 
         current_selection = self.db_sets_tree.selection()
         selected_set_id = current_selection[0] if current_selection else None
+        current_contact_selection = self.db_contacts_tree.selection()
+        selected_contact_id = current_contact_selection[0] if current_contact_selection else None
 
         self.db_sets_tree.delete(*self.db_sets_tree.get_children())
         for item in sets:
@@ -1045,15 +1396,39 @@ class ReviewApp:
                 ),
             )
 
-        if selected_set_id and self.db_sets_tree.exists(selected_set_id):
-            self.db_sets_tree.selection_set(selected_set_id)
-        elif sets:
-            self.db_sets_tree.selection_set(sets[0]["set_id"])
+        self.db_contacts_tree.delete(*self.db_contacts_tree.get_children())
+        for item in contacts:
+            self.db_contacts_tree.insert(
+                "",
+                "end",
+                iid=item["id"],
+                values=(
+                    item["created_at"],
+                    item["name"],
+                    item["reply_email"],
+                    item["status"],
+                ),
+            )
 
-        self._render_db_set_detail()
+        if selected_contact_id and self.db_contacts_tree.exists(selected_contact_id):
+            self.db_contacts_tree.selection_set(selected_contact_id)
+            self._render_db_contact_detail()
+        elif selected_set_id and self.db_sets_tree.exists(selected_set_id):
+            self.db_sets_tree.selection_set(selected_set_id)
+            self._render_db_set_detail()
+        else:
+            self._clear_db_set_edit_fields()
+            self._set_db_detail_text("セットまたは問い合わせを選ぶと、ここに詳細を表示します。")
 
     def _on_db_set_selected(self, _event: object) -> None:
+        if self.db_contacts_tree is not None:
+            self.db_contacts_tree.selection_remove(self.db_contacts_tree.selection())
         self._render_db_set_detail()
+
+    def _on_db_contact_selected(self, _event: object) -> None:
+        if self.db_sets_tree is not None:
+            self.db_sets_tree.selection_remove(self.db_sets_tree.selection())
+        self._render_db_contact_detail()
 
     def _render_db_set_detail(self) -> None:
         if self.db_sets_tree is None or self.db_detail_text is None:
@@ -1117,6 +1492,36 @@ class ReviewApp:
             lines.append(f"記憶メモ: {item['memory_tip']}")
         self._set_db_detail_text("\n".join(lines))
 
+    def _render_db_contact_detail(self) -> None:
+        if self.db_contacts_tree is None or self.db_detail_text is None:
+            return
+        selection = self.db_contacts_tree.selection()
+        if not selection:
+            return
+        message_id = selection[0]
+        try:
+            with connect_content_db(DEFAULT_DB_PATH) as connection:
+                detail = load_db_contact_message_detail(connection, message_id)
+        except Exception as error:
+            self._set_db_detail_text(f"お問い合わせの読み込みに失敗しました: {error}")
+            return
+
+        self._clear_db_set_edit_fields()
+        lines = [
+            f"id: {detail['id']}",
+            f"受信日時: {detail['created_at']}",
+            f"更新日時: {detail['updated_at']}",
+            f"状態: {detail['status']}",
+            f"名前: {detail['name']}",
+            f"返信先: {detail['reply_email']}",
+            f"送信元ページ: {detail['source_page'] or '-'}",
+            f"User-Agent: {detail['user_agent'] or '-'}",
+            "",
+            "本文:",
+            detail["message"],
+        ]
+        self._set_db_detail_text("\n".join(lines))
+
     def _save_db_set_settings(self) -> None:
         set_id = self.db_edit_set_id_var.get().strip()
         if not set_id:
@@ -1172,6 +1577,16 @@ class ReviewApp:
         self.status_var.set(f"{set_id} をDBから削除しました")
         self._refresh_db_viewer()
         self._set_db_detail_text(f"{set_id} を削除しました。")
+        self._clear_db_set_edit_fields()
+        messagebox.showinfo(
+            "削除完了",
+            f"{set_id} を削除しました。\n"
+            f"問題リンク削除: {result['question_links_deleted']}\n"
+            f"公開履歴削除: {result['publish_batches_deleted']}\n"
+            f"孤立問題削除: {result['orphan_questions_deleted']}",
+        )
+
+    def _clear_db_set_edit_fields(self) -> None:
         self.db_edit_set_id_var.set("")
         self.db_edit_label_var.set("")
         self.db_edit_tag_var.set("")
@@ -1181,13 +1596,6 @@ class ReviewApp:
         self.db_edit_active_var.set(True)
         self.db_edit_include_in_premium_var.set(False)
         self.db_edit_delivery_mode_var.set("append_non_duplicate")
-        messagebox.showinfo(
-            "削除完了",
-            f"{set_id} を削除しました。\n"
-            f"問題リンク削除: {result['question_links_deleted']}\n"
-            f"公開履歴削除: {result['publish_batches_deleted']}\n"
-            f"孤立問題削除: {result['orphan_questions_deleted']}",
-        )
 
     def _set_db_detail_text(self, text: str) -> None:
         if self.db_detail_text is None:
@@ -1196,6 +1604,14 @@ class ReviewApp:
         self.db_detail_text.delete("1.0", tk.END)
         self.db_detail_text.insert("1.0", text)
         self.db_detail_text.configure(state="disabled")
+
+    def _set_production_contact_detail_text(self, text: str) -> None:
+        if self.production_contact_detail_text is None:
+            return
+        self.production_contact_detail_text.configure(state="normal")
+        self.production_contact_detail_text.delete("1.0", tk.END)
+        self.production_contact_detail_text.insert("1.0", text)
+        self.production_contact_detail_text.configure(state="disabled")
 
     @staticmethod
     def _to_quiz_question(question: dict) -> dict:

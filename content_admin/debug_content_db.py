@@ -59,6 +59,10 @@ def load_summary(connection: sqlite3.Connection) -> dict:
     active_entitlements = connection.execute(
         "SELECT COUNT(*) FROM entitlements WHERE status = 'active'"
     ).fetchone()[0]
+    contact_messages = connection.execute("SELECT COUNT(*) FROM contact_messages").fetchone()[0]
+    new_contact_messages = connection.execute(
+        "SELECT COUNT(*) FROM contact_messages WHERE status = 'new'"
+    ).fetchone()[0]
     return {
         "question_sets": question_sets,
         "published_questions": published_questions,
@@ -72,6 +76,8 @@ def load_summary(connection: sqlite3.Connection) -> dict:
         "paid_orders": paid_orders,
         "pending_orders": pending_orders,
         "active_entitlements": active_entitlements,
+        "contact_messages": contact_messages,
+        "new_contact_messages": new_contact_messages,
     }
 
 
@@ -176,6 +182,51 @@ def load_license_snapshot(connection: sqlite3.Connection, limit: int) -> dict:
         "orders": orders,
         "entitlements": entitlements,
     }
+
+
+def load_contact_messages(connection: sqlite3.Connection, limit: int) -> list[dict]:
+    rows = connection.execute(
+        """
+        SELECT
+          id,
+          name,
+          reply_email,
+          message,
+          status,
+          source_page,
+          user_agent,
+          created_at,
+          updated_at
+        FROM contact_messages
+        ORDER BY created_at DESC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def load_contact_message_detail(connection: sqlite3.Connection, message_id: str) -> dict:
+    row = connection.execute(
+        """
+        SELECT
+          id,
+          name,
+          reply_email,
+          message,
+          status,
+          source_page,
+          user_agent,
+          created_at,
+          updated_at
+        FROM contact_messages
+        WHERE id = ?
+        """,
+        (message_id,),
+    ).fetchone()
+    if row is None:
+        raise SystemExit(f"Contact message not found: {message_id}")
+    return dict(row)
 
 
 def load_set_detail(connection: sqlite3.Connection, set_id: str) -> dict:

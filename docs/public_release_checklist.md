@@ -1,6 +1,6 @@
 # 公開前チェックリスト
 
-- 最終更新: 2026-05-01
+- 最終更新: 2026-05-03
 - 補足: Stripe Sandbox で購入成功した同一ユーザーは、`D1` の `entitlements` により再ログイン後もプレミアム版になります
 - 補足: 未購入状態の再確認は、新しいテスト用メールアドレスか `orders / entitlements` のリセットで行う
 
@@ -48,6 +48,8 @@
 - [x] `review_tool` から publish 条件を確認できる
 - [x] `content_admin/debug_content_db.py` で公開 / 非公開セットを確認できる
 - [x] `premium_plan_registry.json` に登録した set_id が manifest に出る
+- [x] 返金時に `Stripe -> D1 -> 無料版へ戻る` の流れを確認できる
+- [x] `review_tool` から本番問い合わせの確認と状態更新ができる
 
 ## 残りの優先確認
 
@@ -56,6 +58,8 @@
 - [x] プレミアム問題セット登録後に追加分が混ざることを確認する
 - [x] `review_tool` と `debug_content_db.py` の運用確認を 1 回通す
 - [x] [docs/service_naming_guidance.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\service_naming_guidance.md) に沿って公開名を確定する
+- [x] [docs/refund_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md) に返金時の内部運用手順をまとめる
+- [x] [docs/contact_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_operation_steps.md) に問い合わせ対応手順をまとめる
 
 ## 固定ページの補足
 
