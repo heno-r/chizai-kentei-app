@@ -11,7 +11,7 @@ window.APP_RUNTIME_CONFIG = Object.freeze({
   premiumGuidePath: "/premium/",
   premiumPurchasePath: "/premium/ready/",
   premiumPriceText: "3級プレミアム版 1,200円 / 追加月額料金なし",
-  purchaseEnabled: false,
+  purchaseEnabled: true,
   loginPath: "/login/",
   stripePublishableKey: "",
   stripePriceId: "",
