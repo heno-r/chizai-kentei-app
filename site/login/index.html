@@ -6,7 +6,7 @@
     <title>ログイン | しけん準備室 知財3級対策</title>
     <meta
       name="description"
-      content="しけん準備室 知財3級対策のログインページです。無料版とプレミアム版の利用状態を確認して元の画面へ戻れます。"
+      content="しけん準備室 知財3級対策のログインページです。購入状態の確認やプレミアム版の利用再開を、この画面から続けられます。"
     />
     <link rel="stylesheet" href="/assets/site.css" />
     <script defer src="/assets/runtime-config.js"></script>
@@ -27,18 +27,22 @@
       <main class="article-layout">
         <section class="hero">
           <div class="hero-copy">
-            <p class="eyebrow">ログイン</p>
-            <h1>購入後も、途中からそのまま続けられるように。</h1>
+            <p class="eyebrow">ログイン / アカウント作成</p>
+            <h1>ログインして、そのまま学習を続けられるように。</h1>
             <p class="lead">
-              無料版の状態で続けるか、プレミアム版の状態で続けるかを確認して、元の画面へ戻れます。
-              購入前チェックや無料版の学習画面から戻ってくる前提で、このページを使います。
+              プレミアム版の利用確認や購入手続きの続きは、ログイン後にそのまま進めます。
+              はじめて使う方は、この画面からアカウントを作成できます。
             </p>
-            <div id="login-local-mode" class="hero-actions">
+            <div id="login-local-mode" class="hero-actions hidden">
               <button id="login-free-button" class="button button-secondary" type="button">無料版の状態で続ける</button>
               <button id="login-premium-button" class="button button-primary" type="button">プレミアム版の状態で続ける</button>
             </div>
-            <div id="login-supabase-mode" class="panel auth-form-panel hidden">
-              <p class="section-kicker">Supabase メールログイン</p>
+            <div id="login-supabase-mode" class="panel auth-form-panel">
+              <p class="section-kicker">メールアドレスで続ける</p>
+              <p>
+                購入済みの方は利用時と同じメールアドレスでログインしてください。
+                はじめての方は、下の入力欄からそのままアカウントを作成できます。
+              </p>
               <div class="auth-form-grid">
                 <label class="auth-field">
                   <span>メールアドレス</span>
@@ -61,12 +65,12 @@
                 <dd id="login-current-status">確認中</dd>
               </div>
               <div>
-                <dt>戻り先</dt>
-                <dd id="login-return-target">/app/</dd>
+                <dt>ログイン後の戻り先</dt>
+                <dd id="login-return-target">学習画面</dd>
               </div>
               <div>
-                <dt>対象</dt>
-                <dd>知的財産管理技能検定3級</dd>
+                <dt>利用内容</dt>
+                <dd>3級の学習と購入状態の確認</dd>
               </div>
             </dl>
           </div>
@@ -74,10 +78,10 @@
           <aside class="hero-card">
             <p class="card-label">このページでできること</p>
             <ul class="check-list">
-              <li>無料版として戻る</li>
-              <li>プレミアム版として戻る</li>
-              <li>現在の利用状態を確認する</li>
-              <li>必要ならログアウトする</li>
+              <li>購入状態やプレミアム版の利用可否を確認する</li>
+              <li>無料版の学習画面や購入前チェックへ戻る</li>
+              <li>アカウントを作成して次回以降も同じ状態で続ける</li>
+              <li>必要に応じてログアウトして切り替える</li>
             </ul>
           </aside>
         </section>
@@ -86,29 +90,30 @@
           <div class="panel-head-row">
             <div>
               <p class="section-kicker">利用状態</p>
-              <h2>今の状態に合わせて、次の画面へ戻れます</h2>
+              <h2>ログイン後は、今の状態に合わせてそのまま続けられます</h2>
             </div>
             <div class="cta-actions">
               <button id="login-logout-button" class="button button-secondary hidden" type="button">ログアウト</button>
+              <a class="button button-secondary" href="/premium/">プレミアム版の案内を見る</a>
               <a class="button button-secondary" href="/app/">無料版へ戻る</a>
             </div>
           </div>
           <p id="login-status-copy">
-            無料版はそのまま使えます。購入後にプレミアム版として続けるときは、ここから状態を確認して次の画面へ進めます。
+            ログインすると、購入状態の確認やプレミアム版の利用再開をこのまま進められます。
           </p>
           <div id="login-info-message" class="premium-inline-note hidden"></div>
         </section>
 
         <section id="login-supabase-checklist" class="panel hidden">
-          <p class="section-kicker">Supabase 設定チェック</p>
-          <h2>ログインできないときは、まずこの3点を確認してください</h2>
+          <p class="section-kicker">ログインの確認ポイント</p>
+          <h2>ログインできないときは、この順番で見直すと進めやすいです</h2>
           <ul class="check-list">
-            <li>`Authentication > Sign In / Providers > Email` が有効になっている</li>
-            <li>`Authentication > URL Configuration` に `http://127.0.0.1:8780/login/` などの URL が入っている</li>
-            <li>`Confirm email` を ON にしている場合は、確認メール内のリンクを開き終わっている</li>
+            <li>入力したメールアドレスとパスワードに誤りがないか確認する</li>
+            <li>このサイトのログイン画面から開き直して、もう一度試す</li>
+            <li>確認メールが届いている場合は、案内に沿って手続きを完了する</li>
           </ul>
           <p class="fineprint">
-            メール確認を必須にしたいときは、Supabase 側で `Confirm email` を ON にして運用できます。
+            しばらく待っても改善しないときは、時間をおいてもう一度お試しください。
           </p>
         </section>
       </main>

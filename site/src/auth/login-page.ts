@@ -23,6 +23,22 @@
     locked_until: number;
   }
 
+  function formatReturnToLabel(path: string): string {
+    if (path.startsWith("/premium/ready/")) {
+      return "購入前チェック";
+    }
+    if (path.startsWith("/premium/")) {
+      return "プレミアム版の案内";
+    }
+    if (path.startsWith("/app/")) {
+      return "学習画面";
+    }
+    if (path === "/" || path === "") {
+      return "トップページ";
+    }
+    return path;
+  }
+
   function setButtonBusy(button: HTMLButtonElement | null, busy: boolean, busyLabel?: string): void {
     if (!button) {
       return;
@@ -152,7 +168,7 @@
     supabaseModeWrap?.classList.toggle("hidden", !isSupabase);
     supabaseChecklist?.classList.toggle("hidden", !isSupabase);
     if (isDisabledRemoteStub) {
-      showInfo("公開環境ではローカル簡易ログインは無効です。Supabase ログインを設定してください。");
+      showInfo("この環境ではメールログインで続けられます。");
     }
   }
 
@@ -180,7 +196,7 @@
 
   function renderStatus(status: LicenseStatusResponse): void {
     if (returnToTarget) {
-      returnToTarget.textContent = getReturnToPath();
+      returnToTarget.textContent = formatReturnToLabel(getReturnToPath());
     }
 
     if (!status.signed_in) {
@@ -190,7 +206,7 @@
       if (statusCopy) {
         statusCopy.textContent =
           authClient?.getMode?.() === "supabase"
-            ? "Supabase のメールログインで入ると、購入状態の確認やプレミアム版の解放確認をこのまま続けられます。"
+            ? "ログインすると、購入状態の確認やプレミアム版の利用再開をこのまま続けられます。"
             : "無料版はそのまま使えます。購入後にプレミアム版として続けるときは、ここから状態を確認して次の画面へ進めます。";
       }
       logoutButton?.classList.add("hidden");
@@ -203,10 +219,10 @@
     if (statusCopy) {
       statusCopy.textContent =
         status.active_plan === "premium"
-          ? "プレミアム版の状態で、購入後の画面導線や解放後の見え方をそのまま確認できます。"
+          ? "プレミアム版を利用できる状態です。このまま元の画面へ戻れば、追加問題とプレミアム機能をそのまま使えます。"
           : status.purchase_state === "in_checkout"
-            ? "購入手続き中の状態です。購入前チェックへ戻ると続きの導線を確認できます。"
-            : "無料版の状態です。必要なタイミングでプレミアム版の購入前チェックへ進めます。";
+            ? "購入手続きの途中として記録されています。購入前チェックへ戻ると、そのまま続きから確認できます。"
+            : "ログイン済みです。価格や機能を確認したら、そのまま購入前チェックへ進めます。";
     }
     logoutButton?.classList.remove("hidden");
   }
@@ -215,7 +231,7 @@
     renderMode();
     renderAuthCooldown();
     if (!authClient) {
-      showInfo("ログイン状態の確認は、公開時にこの画面から続けられる形にします。");
+      showInfo("ログイン画面の準備がまだ完了していません。時間をおいてもう一度お試しください。");
       renderStatus({
         signed_in: false,
         active_plan: "free",
@@ -226,10 +242,10 @@
     try {
       const status = await authClient.fetchLicenseStatus();
       if (status.source === "supabase_config_missing") {
-        showInfo("Supabase の設定値がまだ入っていません。runtime-config を確認してください。");
+        showInfo("ログインの準備がまだ完了していません。時間をおいてもう一度お試しください。");
       } else if (String(status.source || "").startsWith("secure_api_") || status.source === "secure_api_unavailable") {
         showInfo(
-          "ログイン自体は成功しています。いまは会員状態の確認だけ一時的に取れていないため、無料版として続けられる状態で表示しています。",
+          "ログインは完了しています。購入状態の確認だけ一時的に遅れているため、いったん無料版として表示しています。",
         );
       }
       renderStatus(status);

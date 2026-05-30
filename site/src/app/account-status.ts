@@ -67,8 +67,8 @@
   async function refresh(): Promise<void> {
     if (!authClient) {
       renderMessage(
-        "ログイン案内は準備中です",
-        "今は無料版の学習体験をそのまま確認できます。プレミアム版の購入状態確認は、公開時にこの画面から続けられるようにします。",
+        "ログイン画面の準備中です",
+        "いまは無料版の学習体験をそのまま確認できます。ログイン後の購入状態確認は、時間をおいてもう一度お試しください。",
         false,
         {
           loginHref: buildLoginHref(),
@@ -85,7 +85,7 @@
       if (status.source === "supabase_config_missing") {
         renderMessage(
           "ログイン設定が未完了です",
-          "本番用の Supabase Auth 設定がまだ入っていません。ローカル確認では local_stub を使うか、設定値を入れてから再確認します。",
+          "ログインの準備がまだ完了していません。時間をおいてもう一度お試しください。",
           false,
           {
             loginHref: buildLoginHref(),
@@ -98,10 +98,10 @@
       }
       if (!status.signed_in) {
         renderMessage(
-          isPurchaseEnabled() ? "無料版を試したあとは、ログインして次へ進めます" : "無料版を試しながら公開準備をお待ちください",
+          isPurchaseEnabled() ? "無料版を試したあとは、ログインして次へ進めます" : "無料版を試しながらご案内をお待ちください",
           isPurchaseEnabled()
             ? "無料版の相性確認が済んだら、先にログインしておくと購入前チェックからそのまま進めます。"
-            : "ログインはできますが、プレミアム版の購入受付は Stripe の本番審査が完了するまで一時停止しています。",
+            : "ログインはできますが、プレミアム版の購入受付は現在準備中です。",
           false,
           {
             loginHref: buildLoginHref(),
@@ -134,7 +134,7 @@
           ? status.purchase_state === "in_checkout"
             ? "購入手続きの途中として記録されています。購入前チェックへ戻ると、そのまま続きから確認できます。"
             : "ログイン済みなので、価格と機能を確認したらそのまま購入へ進めます。"
-          : "ログイン済みです。プレミアム版の内容確認はできますが、購入受付は Stripe の本番審査が完了するまで一時停止しています。",
+          : "ログイン済みです。プレミアム版の内容確認はできますが、購入受付は現在準備中です。",
         true,
         {
           loginHref: buildLoginHref(),
