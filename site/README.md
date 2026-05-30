@@ -51,12 +51,24 @@ Cloudflare Pages に載せる公開用ディレクトリです。ここには LP
 
 - [run_site.bat](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\run_site.bat)
   - 公開サイト一式をローカルで確認するための起動バッチ
+  - 第1引数で環境を選択可能:
+    - `site\run_site.bat production`
+    - `site\run_site.bat staging`
   - 起動後の確認先:
     - `http://127.0.0.1:8780/`
     - `http://127.0.0.1:8780/app/`
     - `http://127.0.0.1:8780/premium/`
     - `http://127.0.0.1:8780/premium/ready/`
     - `http://127.0.0.1:8780/login/`
+
+## 環境別設定
+
+- `site/config/runtime-config.production.json`
+  - 本番用の Pages / Worker / Supabase 向け設定
+- `site/config/runtime-config.staging.json`
+  - ステージング用の Pages / Worker / Supabase 向け設定
+- `render_runtime_config.ps1`
+  - 環境ごとの JSON から `assets/runtime-config.js` を生成
 
 ## API 前提の運用
 

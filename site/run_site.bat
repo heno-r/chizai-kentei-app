@@ -3,10 +3,14 @@ setlocal
 
 cd /d "%~dp0"
 
+set "SITE_ENV=%~1"
+if "%SITE_ENV%"=="" set "SITE_ENV=production"
+
 set "SITE_PORT=8780"
 set "SITE_URL=http://127.0.0.1:%SITE_PORT%/"
 set "TSC_CMD=%~dp0..\quiz_app\node_modules\.bin\tsc.cmd"
 set "SERVER_SCRIPT=%~dp0serve_site.ps1"
+set "RENDER_CONFIG_SCRIPT=%~dp0render_runtime_config.ps1"
 
 if exist "%TSC_CMD%" (
   call "%TSC_CMD%" -p tsconfig.json
@@ -21,11 +25,17 @@ if exist "%TSC_CMD%" (
   copy /y "%~dp0build\app\auth-client.js" "%~dp0app\auth-client.js" >nul
   copy /y "%~dp0build\assets\diagnosis.js" "%~dp0assets\diagnosis.js" >nul
   copy /y "%~dp0build\assets\landing-page.js" "%~dp0assets\landing-page.js" >nul
-  copy /y "%~dp0build\assets\runtime-config.js" "%~dp0assets\runtime-config.js" >nul
   copy /y "%~dp0build\auth\login-page.js" "%~dp0login\login-page.js" >nul
   copy /y "%~dp0build\contact\contact-page.js" "%~dp0contact\contact-page.js" >nul
   copy /y "%~dp0build\premium\premium-page.js" "%~dp0premium\premium-page.js" >nul
   copy /y "%~dp0build\premium\purchase-ready-page.js" "%~dp0premium\purchase-ready-page.js" >nul
+)
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%RENDER_CONFIG_SCRIPT%" -EnvironmentName "%SITE_ENV%"
+if errorlevel 1 (
+  echo Failed to render runtime config for %SITE_ENV%.
+  pause
+  goto :end
 )
 
 start "" powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "%SERVER_SCRIPT%" -Port %SITE_PORT%

@@ -1,5 +1,8 @@
 param(
-  [string]$PagesUrl = "https://shiken-junbishitsu-chizai3.pages.dev",
+  [ValidateSet("production", "staging")]
+  [string]$EnvironmentName = "production",
+
+  [string]$PagesUrl = "",
 
   [string]$PremiumSetId = "grade3_premium_combined_160",
   [string]$PlanCode = "grade3_premium",
@@ -15,6 +18,8 @@ $buildDir = Join-Path $siteDir "build"
 $artifactsDir = Join-Path $repoRoot "content_admin\deploy_artifacts\premium-questions"
 $artifactPath = Join-Path $artifactsDir "$PremiumSetId.json"
 $instructionsPath = Join-Path $repoRoot "docs\pages_dev_release_next_steps.txt"
+$runtimeConfigPath = Join-Path $siteDir "config\runtime-config.$EnvironmentName.json"
+$renderRuntimeConfigScript = Join-Path $siteDir "render_runtime_config.ps1"
 
 $bundledPython = Join-Path $env:USERPROFILE ".cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe"
 $siteTsc = Join-Path $siteDir "node_modules\.bin\tsc.cmd"
@@ -69,9 +74,34 @@ function Export-PremiumPayload {
     --output $artifactPath
 }
 
+function Get-PagesUrlFromRuntimeConfig {
+  if (-not (Test-Path $runtimeConfigPath)) {
+    throw "Runtime config file was not found: $runtimeConfigPath"
+  }
+
+  $config = Get-Content -Path $runtimeConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+  $configuredPagesUrl = [string]$config.pagesUrl
+  if ([string]::IsNullOrWhiteSpace($configuredPagesUrl)) {
+    throw "pagesUrl is missing in $runtimeConfigPath"
+  }
+  return $configuredPagesUrl.TrimEnd("/")
+}
+
+function Render-RuntimeConfig {
+  if (-not (Test-Path $renderRuntimeConfigScript)) {
+    throw "Runtime config render script was not found."
+  }
+
+  & $renderRuntimeConfigScript -EnvironmentName $EnvironmentName
+}
+
 function Write-NextSteps {
+  $workerDeployCommand = if ($EnvironmentName -eq "staging") { "   npx wrangler deploy --env staging" } else { "   npx wrangler deploy" }
   $lines = @(
     "Pages release helper finished.",
+    "",
+    "Environment:",
+    $EnvironmentName,
     "",
     "Pages URL:",
     $PagesUrl,
@@ -89,7 +119,7 @@ function Write-NextSteps {
     "",
     "3. Redeploy the Worker:",
     "   cd `"$repoRoot\secure_api_worker`"",
-    "   npx wrangler deploy",
+    $workerDeployCommand,
     "",
     "4. In Supabase Authentication > URL Configuration, add:",
     "   $PagesUrl/",
@@ -109,13 +139,19 @@ function Write-NextSteps {
 
 Set-Location $repoRoot
 
+if ([string]::IsNullOrWhiteSpace($PagesUrl)) {
+  $PagesUrl = Get-PagesUrlFromRuntimeConfig
+}
+
 Invoke-TscBuild
 Copy-BuildOutput
+Render-RuntimeConfig
 Export-PremiumPayload
 Write-NextSteps
 
 Write-Host ""
 Write-Host "Prepared Pages release assets."
+Write-Host "Environment: $EnvironmentName"
 Write-Host "Pages URL: $PagesUrl"
 Write-Host "Premium payload: $artifactPath"
 Write-Host "Next steps file: $instructionsPath"

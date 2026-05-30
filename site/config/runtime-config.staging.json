@@ -1,0 +1,23 @@
+{
+  "pagesUrl": "https://replace-staging-site.pages.dev",
+  "runtimeConfig": {
+    "publicApiBaseUrl": "",
+    "secureApiBaseUrl": "https://replace-staging-worker.workers.dev",
+    "authMode": "supabase",
+    "checkoutProvider": "stripe",
+    "freeQuestionPath": "./data/questions.json",
+    "publicCatalogPath": "./data/public_catalog.json",
+    "freeQuestionSet": "grade3_mixed_priority_50",
+    "cloudflarePagesProject": "chizai-kentei-site-staging",
+    "premiumGuidePath": "/premium/",
+    "premiumPurchasePath": "/premium/ready/",
+    "premiumPriceText": "3級プレミアム版 1,200円 / 追加月額料金なし",
+    "purchaseEnabled": false,
+    "loginPath": "/login/",
+    "stripePublishableKey": "",
+    "stripePriceId": "",
+    "supportEmail": "support@example.com",
+    "supabaseUrl": "https://replace-staging-project.supabase.co",
+    "supabasePublishableKey": "sb_publishable_replace_staging_me"
+  }
+}
