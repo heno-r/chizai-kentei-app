@@ -160,6 +160,29 @@ function escapeHtml(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
 }
+function createEmptyStateCard(title, copy, className = "review-item") {
+    const card = document.createElement("div");
+    card.className = className;
+    const heading = document.createElement("h4");
+    heading.textContent = title;
+    const body = document.createElement("p");
+    body.textContent = copy;
+    card.append(heading, body);
+    return card;
+}
+function createInfoCard(labelText, titleText, bodyText, className = "stat-card") {
+    const card = document.createElement("article");
+    card.className = className;
+    const label = document.createElement("span");
+    label.className = "summary-label";
+    label.textContent = labelText;
+    const heading = document.createElement("strong");
+    heading.textContent = titleText;
+    const body = document.createElement("p");
+    body.textContent = bodyText;
+    card.append(label, heading, body);
+    return card;
+}
 function normalizeReferenceLinks(question) {
     const candidates = Array.isArray(question?.reference_links)
         ? question.reference_links
@@ -568,35 +591,39 @@ function renderPublicCatalog(plans) {
         return;
     }
     if (!plans.length) {
-        publicCatalogWrap.innerHTML = `
-        <article class="stat-card">
-          <span class="summary-label">案内準備中</span>
-          <strong>プラン情報を読み込めませんでした。</strong>
-          <p>無料版だけでもそのまま学習を始められます。</p>
-        </article>
-    `;
+        publicCatalogWrap.replaceChildren(createEmptyStateCard("プラン情報を読み込めませんでした。", "無料版だけでもそのまま学習を始められます。", "stat-card"));
         return;
     }
-    publicCatalogWrap.innerHTML = plans
-        .map((plan) => {
-        const disabledClass = plan.available === false ? " is-disabled" : "";
-        const statusChip = plan.available === false
-            ? `<span class="status-chip status-chip-muted">${plan.status_label || "準備中"}</span>`
-            : "";
-        const featureList = (plan.features || [])
-            .map((feature) => `<span class="badge badge-soft">${feature}</span>`)
-            .join("");
-        return `
-        <article class="stat-card${disabledClass}" aria-disabled="${plan.available === false ? "true" : "false"}">
-          <span class="summary-label">${plan.label}</span>
-          ${statusChip}
-          <strong>${plan.price_text}</strong>
-          <p>${plan.description}</p>
-          <div class="meta-row">${featureList}</div>
-        </article>
-      `;
-    })
-        .join("");
+    publicCatalogWrap.replaceChildren(...plans.map((plan) => {
+        const article = document.createElement("article");
+        article.className = `stat-card${plan.available === false ? " is-disabled" : ""}`;
+        article.setAttribute("aria-disabled", plan.available === false ? "true" : "false");
+        const label = document.createElement("span");
+        label.className = "summary-label";
+        label.textContent = String(plan.label || "");
+        article.appendChild(label);
+        if (plan.available === false) {
+            const statusChip = document.createElement("span");
+            statusChip.className = "status-chip status-chip-muted";
+            statusChip.textContent = String(plan.status_label || "準備中");
+            article.appendChild(statusChip);
+        }
+        const price = document.createElement("strong");
+        price.textContent = String(plan.price_text || "");
+        const description = document.createElement("p");
+        description.textContent = String(plan.description || "");
+        article.append(price, description);
+        const metaRow = document.createElement("div");
+        metaRow.className = "meta-row";
+        (plan.features || []).forEach((feature) => {
+            const badge = document.createElement("span");
+            badge.className = "badge badge-soft";
+            badge.textContent = String(feature);
+            metaRow.appendChild(badge);
+        });
+        article.appendChild(metaRow);
+        return article;
+    }));
 }
 async function loadPublicCatalog() {
     if (!publicCatalogWrap) {
@@ -897,8 +924,7 @@ function renderResults() {
         focusWeakButton.classList.add("hidden");
         retryWrongButton.classList.add("hidden");
         retryFlaggedButton.classList.toggle("hidden", getFlaggedQuestionIds().length === 0 || !hasFeature("flagged_mode"));
-        reviewList.innerHTML =
-            '<div class="review-item"><h4>回答前に中止しました</h4><p>この回では評価対象の回答がありません。次は1問だけでも解いてから振り返ると学習傾向が見えやすくなります。</p></div>';
+        reviewList.replaceChildren(createEmptyStateCard("回答前に中止しました", "この回では評価対象の回答がありません。次は1問だけでも解いてから振り返ると学習傾向が見えやすくなります。"));
         return;
     }
     if (wrongAnswers.length === 0) {
@@ -909,7 +935,7 @@ function renderResults() {
         focusWeakButton.classList.add("hidden");
         retryWrongButton.classList.add("hidden");
         retryFlaggedButton.classList.toggle("hidden", getFlaggedQuestionIds().length === 0 || !hasFeature("flagged_mode"));
-        reviewList.innerHTML = '<div class="review-item"><h4>全問正解</h4><p>このセットは十分に理解できています。次は問題数を増やしても良さそうです。</p></div>';
+        reviewList.replaceChildren(createEmptyStateCard("全問正解", "このセットは十分に理解できています。次は問題数を増やしても良さそうです。"));
         return;
     }
     const categoryCounts = {};
@@ -929,11 +955,13 @@ function renderResults() {
         const question = state.queue.find((item) => item.id === answer.questionId);
         const item = document.createElement("article");
         item.className = "review-item";
-        item.innerHTML = `
-      <h4>${question.category} / ${question.subtopic}</h4>
-      <p>${question.prompt}</p>
-      <p>覚え方: ${question.memory_tip}</p>
-    `;
+        const heading = document.createElement("h4");
+        heading.textContent = `${question.category} / ${question.subtopic}`;
+        const prompt = document.createElement("p");
+        prompt.textContent = question.prompt;
+        const memory = document.createElement("p");
+        memory.textContent = `覚え方: ${question.memory_tip}`;
+        item.append(heading, prompt, memory);
         reviewList.appendChild(item);
     });
 }
@@ -1041,15 +1069,9 @@ function renderStudyPlan() {
     for (let day = 1; day <= 14; day += 1) {
         const category = orderedCategories[(day - 1) % orderedCategories.length] || "著作権";
         const intensity = wrongCounts[category] > 0 ? "重点" : "基礎確認";
-        cards.push(`
-      <article class="plan-card">
-        <span class="summary-label">Day ${day}</span>
-        <strong>${category}</strong>
-        <p>${intensity}で 5問前後。${day % 3 === 0 ? "前日に間違えた論点も再確認。" : "基本用語と正答理由を声に出して確認。"}</p>
-      </article>
-    `);
+        cards.push(createInfoCard(`Day ${day}`, category, `${intensity}で 5問前後。${day % 3 === 0 ? "前日に間違えた論点も再確認。" : "基本用語と正答理由を声に出して確認。"}`, "plan-card"));
     }
-    studyPlan.innerHTML = cards.join("");
+    studyPlan.replaceChildren(...cards);
 }
 function renderCategoryStats() {
     const categories = [...new Set(state.questions.map((question) => question.category))];
@@ -1066,39 +1088,30 @@ function renderCategoryStats() {
     const cards = categories.map((category) => {
         const entry = stats[category];
         if (!entry || entry.answered === 0) {
-            return `
-        <article class="stat-card">
-          <span class="summary-label">${category}</span>
-          <strong>まだ履歴なし</strong>
-          <p>このカテゴリを解くと、正答率と学習量がここに表示されます。</p>
-        </article>
-      `;
+            return createInfoCard(category, "まだ履歴なし", "このカテゴリを解くと、正答率と学習量がここに表示されます。");
         }
         const rate = Math.round((entry.correct / entry.answered) * 100);
-        return `
-      <article class="stat-card">
-        <span class="summary-label">${category}</span>
-        <strong>${rate}% 正解</strong>
-        <p>${entry.answered}問回答 / ${entry.correct}問正解</p>
-      </article>
-    `;
+        return createInfoCard(category, `${rate}% 正解`, `${entry.answered}問回答 / ${entry.correct}問正解`);
     });
-    categoryStats.innerHTML = cards.join("");
+    categoryStats.replaceChildren(...cards);
 }
 function renderRecentSessions() {
     const sessions = [...state.history.sessions].slice(-4).reverse();
     if (sessions.length === 0) {
-        recentSessions.innerHTML = `
-      <article class="session-card">
-        <span class="summary-label">まだ履歴なし</span>
-        <strong>最初の1回を解くと、ここに記録されます。</strong>
-        <p>途中中止も履歴に残るので、学習ペースを見返しやすくなります。</p>
-      </article>
-    `;
+        const card = document.createElement("article");
+        card.className = "session-card";
+        const label = document.createElement("span");
+        label.className = "summary-label";
+        label.textContent = "まだ履歴なし";
+        const heading = document.createElement("strong");
+        heading.textContent = "最初の1回を解くと、ここに記録されます。";
+        const copy = document.createElement("p");
+        copy.textContent = "途中中止も履歴に残るので、学習ペースを見返しやすくなります。";
+        card.append(label, heading, copy);
+        recentSessions.replaceChildren(card);
         return;
     }
-    recentSessions.innerHTML = sessions
-        .map((session) => {
+    recentSessions.replaceChildren(...sessions.map((session) => {
         const label = MODE_LABELS[session.mode] || session.mode;
         const rate = session.answeredCount
             ? Math.round((session.correctCount / session.answeredCount) * 100)
@@ -1109,15 +1122,18 @@ function renderRecentSessions() {
             hour: "2-digit",
             minute: "2-digit",
         });
-        return `
-        <article class="session-card">
-          <span class="summary-label">${playedAt}</span>
-          <strong>${label}</strong>
-          <p>${session.answeredCount}問回答 / ${session.correctCount}問正解 / 正答率 ${rate}%</p>
-        </article>
-      `;
-    })
-        .join("");
+        const article = document.createElement("article");
+        article.className = "session-card";
+        const playedAtEl = document.createElement("span");
+        playedAtEl.className = "summary-label";
+        playedAtEl.textContent = playedAt;
+        const heading = document.createElement("strong");
+        heading.textContent = label;
+        const copy = document.createElement("p");
+        copy.textContent = `${session.answeredCount}問回答 / ${session.correctCount}問正解 / 正答率 ${rate}%`;
+        article.append(playedAtEl, heading, copy);
+        return article;
+    }));
 }
 function getRecommendedStudy() {
     const flaggedIds = getFlaggedQuestionIds();

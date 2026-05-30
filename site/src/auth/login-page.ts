@@ -119,10 +119,15 @@
   }
 
   function renderMode(): void {
-    const isSupabase = authClient?.getMode?.() === "supabase";
-    localModeWrap?.classList.toggle("hidden", isSupabase);
+    const mode = authClient?.getMode?.();
+    const isSupabase = mode === "supabase";
+    const isDisabledRemoteStub = mode === "disabled_remote_stub";
+    localModeWrap?.classList.toggle("hidden", isSupabase || isDisabledRemoteStub);
     supabaseModeWrap?.classList.toggle("hidden", !isSupabase);
     supabaseChecklist?.classList.toggle("hidden", !isSupabase);
+    if (isDisabledRemoteStub) {
+      showInfo("公開環境ではローカル簡易ログインは無効です。Supabase ログインを設定してください。");
+    }
   }
 
   function formatSupabaseError(error: unknown, action: "signin" | "signup"): string {

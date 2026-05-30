@@ -697,7 +697,7 @@ function requireAdminToken(request: Request, env: Env): true | Response {
   }
 
   const providedToken = (request.headers.get("x-admin-token") || "").trim();
-  if (!providedToken || providedToken !== configuredToken) {
+  if (!providedToken || !timingSafeEqual(providedToken, configuredToken)) {
     return jsonResponse(request, { error: "admin token is invalid" }, 403);
   }
 
@@ -706,7 +706,10 @@ function requireAdminToken(request: Request, env: Env): true | Response {
 
 function withCors(request: Request, response: Response): Response {
   const headers = new Headers(response.headers);
-  headers.set("access-control-allow-origin", request.headers.get("Origin") || "*");
+  const allowedOrigin = resolveAllowedCorsOrigin(request);
+  if (allowedOrigin) {
+    headers.set("access-control-allow-origin", allowedOrigin);
+  }
   headers.set("access-control-allow-methods", "GET, POST, OPTIONS");
   headers.set(
     "access-control-allow-headers",
@@ -714,11 +717,43 @@ function withCors(request: Request, response: Response): Response {
   );
   headers.set("access-control-expose-headers", "content-type");
   headers.set("vary", "origin, access-control-request-headers");
+  headers.set("x-content-type-options", "nosniff");
+  headers.set("x-frame-options", "DENY");
+  headers.set("referrer-policy", "same-origin");
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers,
   });
+}
+
+function resolveAllowedCorsOrigin(request: Request): string | null {
+  const origin = request.headers.get("Origin");
+  if (!origin) {
+    return null;
+  }
+  if (!/^https?:\/\//.test(origin)) {
+    return null;
+  }
+  const normalizedOrigin = origin.replace(/\/+$/, "");
+  const allowedOrigins = new Set<string>(["http://127.0.0.1:8780", "http://localhost:8780"]);
+  if (normalizedOrigin.endsWith(".pages.dev")) {
+    allowedOrigins.add(normalizedOrigin);
+  }
+  return allowedOrigins.has(normalizedOrigin) ? normalizedOrigin : null;
+}
+
+function timingSafeEqual(left: string, right: string): boolean {
+  const leftBytes = new TextEncoder().encode(left);
+  const rightBytes = new TextEncoder().encode(right);
+  if (leftBytes.length !== rightBytes.length) {
+    return false;
+  }
+  let diff = 0;
+  for (let index = 0; index < leftBytes.length; index += 1) {
+    diff |= leftBytes[index] ^ rightBytes[index];
+  }
+  return diff === 0;
 }
 
 function readBearerToken(request: Request): string {
@@ -1442,26 +1477,16 @@ function buildAppReturnUrl(request: Request, env: Env, appEntryPath: string): st
 }
 
 function resolvePublicSiteBaseUrl(request: Request, env: Env): string {
-  const origin = request.headers.get("origin");
-  if (origin && /^https?:\/\//.test(origin)) {
-    return origin.replace(/\/+$/, "");
-  }
-
-  const referer = request.headers.get("referer");
-  if (referer) {
-    try {
-      const refererUrl = new URL(referer);
-      return refererUrl.origin.replace(/\/+$/, "");
-    } catch {
-      // ignore invalid referer
-    }
-  }
-
   if (env.PUBLIC_SITE_URL) {
     return env.PUBLIC_SITE_URL.replace(/\/+$/, "");
   }
 
-  throw new Error("PUBLIC_SITE_URL is not configured and request origin is unavailable");
+  const origin = resolveAllowedCorsOrigin(request);
+  if (origin) {
+    return origin;
+  }
+
+  throw new Error("PUBLIC_SITE_URL is not configured");
 }
 
 function normalizePath(path: string): string {

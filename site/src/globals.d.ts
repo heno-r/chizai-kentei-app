@@ -1,7 +1,7 @@
 interface AppRuntimeConfig {
   publicApiBaseUrl?: string;
   secureApiBaseUrl?: string;
-  authMode?: "local_stub" | "supabase";
+  authMode?: "local_stub" | "supabase" | "disabled_remote_stub";
   checkoutProvider?: "local_stub" | "stripe";
   freeQuestionPath?: string;
   publicCatalogPath?: string;
@@ -56,7 +56,7 @@ interface QuestionReferenceLink {
 }
 
 interface SiteAuthClientApi {
-  getMode: () => "local_stub" | "supabase";
+  getMode: () => "local_stub" | "supabase" | "disabled_remote_stub";
   isSupabaseConfigured: () => boolean;
   fetchLicenseStatus: () => Promise<LicenseStatusResponse>;
   fetchSecureHealth?: () => Promise<any>;

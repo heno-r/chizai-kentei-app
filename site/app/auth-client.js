@@ -2,7 +2,10 @@
     const runtimeConfig = window.APP_RUNTIME_CONFIG || {};
     const STORAGE_KEY = "chizai-site-auth-session-v1";
     const SUPABASE_BROWSER_SDK_URL = "https://esm.sh/@supabase/supabase-js@2";
-    const authMode = runtimeConfig.authMode || "local_stub";
+    const configuredAuthMode = runtimeConfig.authMode || "local_stub";
+    const authMode = configuredAuthMode !== "supabase" && typeof window !== "undefined" && !["127.0.0.1", "localhost"].includes(window.location?.hostname || "")
+        ? "disabled_remote_stub"
+        : configuredAuthMode;
     let supabaseClientPromise = null;
     class PublicAuthError extends Error {
         constructor(message, status, retryAfterSeconds) {
@@ -213,6 +216,10 @@
         return buildSupabaseSignedInFallback(source);
     }
     async function fetchLicenseStatus() {
+        if (authMode === "disabled_remote_stub") {
+            console.warn("local stub auth mode is disabled outside localhost");
+            return buildGuestStatus("remote_stub_disabled");
+        }
         if (authMode === "supabase" && !isSupabaseConfigured()) {
             console.warn("supabase auth mode is selected, but required config is missing");
             return buildGuestStatus("supabase_config_missing");
@@ -312,6 +319,9 @@
         return response.json();
     }
     async function signInAs(planKey) {
+        if (authMode === "disabled_remote_stub") {
+            throw new Error("local stub sign-in is disabled outside localhost");
+        }
         if (authMode === "supabase") {
             return buildGuestStatus("supabase_login_required");
         }
