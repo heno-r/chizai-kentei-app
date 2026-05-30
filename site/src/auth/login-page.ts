@@ -23,6 +23,32 @@
     locked_until: number;
   }
 
+  function setButtonBusy(button: HTMLButtonElement | null, busy: boolean, busyLabel?: string): void {
+    if (!button) {
+      return;
+    }
+
+    if (busy) {
+      if (!button.dataset.defaultLabel) {
+        button.dataset.defaultLabel = button.textContent?.trim() || "";
+      }
+      button.disabled = true;
+      button.classList.add("is-busy");
+      button.setAttribute("aria-busy", "true");
+      if (busyLabel) {
+        button.textContent = busyLabel;
+      }
+      return;
+    }
+
+    button.disabled = false;
+    button.classList.remove("is-busy");
+    button.removeAttribute("aria-busy");
+    if (button.dataset.defaultLabel) {
+      button.textContent = button.dataset.defaultLabel;
+    }
+  }
+
   function getReturnToPath(): string {
     const params = new URLSearchParams(window.location.search);
     const raw = params.get("returnTo");
@@ -221,17 +247,33 @@
     if (!authClient) {
       return;
     }
-    const status =
-      planKey === "premium" ? await authClient.signInAsPremium() : await authClient.signInAsFree();
-    renderStatus(status);
-    showInfo(
-      planKey === "premium"
-        ? "プレミアム版の状態で続けます。元の画面へ戻ります。"
-        : "無料版の状態で続けます。元の画面へ戻ります。",
-    );
-    window.setTimeout(() => {
-      window.location.href = getReturnToPath();
-    }, 250);
+    const activeButton = planKey === "premium" ? premiumButton : freeButton;
+    const inactiveButton = planKey === "premium" ? freeButton : premiumButton;
+    setButtonBusy(activeButton, true, "切り替え中...");
+    if (inactiveButton) {
+      inactiveButton.disabled = true;
+    }
+    try {
+      const status =
+        planKey === "premium" ? await authClient.signInAsPremium() : await authClient.signInAsFree();
+      renderStatus(status);
+      showInfo(
+        planKey === "premium"
+          ? "プレミアム版の状態で続けます。元の画面へ戻ります。"
+          : "無料版の状態で続けます。元の画面へ戻ります。",
+      );
+      window.setTimeout(() => {
+        window.location.href = getReturnToPath();
+      }, 250);
+    } catch (error) {
+      console.warn("local sign in failed", error);
+      showInfo("状態の切り替えに失敗しました。時間をおいてもう一度お試しください。");
+    } finally {
+      setButtonBusy(activeButton, false);
+      if (inactiveButton) {
+        inactiveButton.disabled = false;
+      }
+    }
   }
 
   async function signInWithEmailPassword(): Promise<void> {
@@ -249,6 +291,7 @@
       return;
     }
     setAuthButtonsDisabled(true);
+    setButtonBusy(emailSignInButton, true, "ログイン中...");
     try {
       const status = await authClient.signInWithEmailPassword(email, password);
       clearLocalAuthFailure();
@@ -270,6 +313,7 @@
       );
       showInfo(formatSupabaseError(error, "signin"));
     } finally {
+      setButtonBusy(emailSignInButton, false);
       if (getRemainingCooldownSeconds() <= 0) {
         setAuthButtonsDisabled(false);
       }
@@ -291,6 +335,7 @@
       return;
     }
     setAuthButtonsDisabled(true);
+    setButtonBusy(emailSignUpButton, true, "作成中...");
     try {
       const result = await authClient.signUpWithEmail(email, password);
       const hasSession = Boolean(result?.session);
@@ -321,6 +366,7 @@
       );
       showInfo(formatSupabaseError(error, "signup"));
     } finally {
+      setButtonBusy(emailSignUpButton, false);
       if (getRemainingCooldownSeconds() <= 0) {
         setAuthButtonsDisabled(false);
       }
