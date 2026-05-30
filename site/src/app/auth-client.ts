@@ -33,10 +33,7 @@
       return null;
     }
     if (!supabaseClientPromise) {
-      const importSupabaseModule = new Function("specifier", "return import(specifier);") as (
-        specifier: string,
-      ) => Promise<any>;
-      supabaseClientPromise = importSupabaseModule(SUPABASE_BROWSER_SDK_URL).then((mod) =>
+      supabaseClientPromise = import(SUPABASE_BROWSER_SDK_URL).then((mod) =>
         mod.createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabasePublishableKey, {
           auth: {
             persistSession: true,

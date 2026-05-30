@@ -26,8 +26,7 @@
             return null;
         }
         if (!supabaseClientPromise) {
-            const importSupabaseModule = new Function("specifier", "return import(specifier);");
-            supabaseClientPromise = importSupabaseModule(SUPABASE_BROWSER_SDK_URL).then((mod) => mod.createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabasePublishableKey, {
+            supabaseClientPromise = import(SUPABASE_BROWSER_SDK_URL).then((mod) => mod.createClient(runtimeConfig.supabaseUrl, runtimeConfig.supabasePublishableKey, {
                 auth: {
                     persistSession: true,
                     autoRefreshToken: true,
