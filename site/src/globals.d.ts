@@ -66,6 +66,9 @@ interface SiteAuthClientApi {
   signInAsPremium: () => Promise<LicenseStatusResponse>;
   signUpWithEmail: (email: string, password: string) => Promise<any>;
   signInWithEmailPassword: (email: string, password: string) => Promise<LicenseStatusResponse>;
+  requestPasswordReset: (email: string) => Promise<any>;
+  isPasswordRecoverySession: () => Promise<boolean>;
+  updatePasswordWithRecovery: (password: string) => Promise<LicenseStatusResponse>;
   startCheckout: () => Promise<any>;
   completeCheckout: () => Promise<LicenseStatusResponse>;
   signOut: () => void;

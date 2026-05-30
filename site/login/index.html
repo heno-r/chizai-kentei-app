@@ -57,7 +57,32 @@
                 <button id="login-email-signin-button" class="button button-primary" type="button">メールでログイン</button>
                 <button id="login-email-signup-button" class="button button-secondary" type="button">アカウントを作成</button>
               </div>
+              <div class="auth-subactions">
+                <button id="login-password-reset-button" class="text-button" type="button">パスワードを忘れた場合</button>
+              </div>
               <p class="fineprint">短時間に試行回数が多い場合は、一時的にログインや登録を制限します。</p>
+            </div>
+            <div id="login-recovery-mode" class="panel auth-form-panel hidden">
+              <p class="section-kicker">新しいパスワードを設定</p>
+              <p>
+                再設定メールから戻った方は、ここで新しいパスワードを入力してください。
+                設定後は、そのまま学習画面や購入前チェックへ戻れます。
+              </p>
+              <div class="auth-form-grid">
+                <label class="auth-field">
+                  <span>新しいパスワード</span>
+                  <input id="login-recovery-password" type="password" autocomplete="new-password" placeholder="10文字以上で設定してください" />
+                </label>
+                <label class="auth-field">
+                  <span>新しいパスワード（確認）</span>
+                  <input id="login-recovery-password-confirm" type="password" autocomplete="new-password" placeholder="もう一度入力してください" />
+                </label>
+              </div>
+              <div class="cta-actions">
+                <button id="login-recovery-save-button" class="button button-primary" type="button">新しいパスワードを設定</button>
+                <button id="login-recovery-cancel-button" class="button button-secondary" type="button">ログイン画面に戻る</button>
+              </div>
+              <p class="fineprint">パスワードは10文字以上で設定してください。</p>
             </div>
             <dl class="hero-metrics">
               <div>

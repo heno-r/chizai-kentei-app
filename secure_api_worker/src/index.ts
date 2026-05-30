@@ -140,7 +140,7 @@ interface AuthAttemptBucket {
 }
 
 interface AuthRateLimitPolicy {
-  action: "signin" | "signup";
+  action: "signin" | "signup" | "password_reset";
   windowMinutes: number;
   blockMinutes: number;
   maxAttemptsPerIp: number;
@@ -176,6 +176,15 @@ const SIGNUP_RATE_LIMIT_POLICY: AuthRateLimitPolicy = {
   windowMinutes: 30,
   blockMinutes: 60,
   maxAttemptsPerIp: 10,
+  maxAttemptsPerEmail: 4,
+  maxAttemptsPerIpEmail: 3,
+};
+
+const PASSWORD_RESET_RATE_LIMIT_POLICY: AuthRateLimitPolicy = {
+  action: "password_reset",
+  windowMinutes: 30,
+  blockMinutes: 60,
+  maxAttemptsPerIp: 8,
   maxAttemptsPerEmail: 4,
   maxAttemptsPerIpEmail: 3,
 };
@@ -310,6 +319,44 @@ export default {
           needs_confirmation: !hasSession,
           session: hasSession ? buildSupabaseSessionPayload(payloadJson) : null,
           user: hasSession ? buildSupabaseUserPayload(payloadJson) : null,
+        });
+      }
+
+      if (request.method === "POST" && url.pathname === "/api/public/auth/password-reset") {
+        const startedAt = Date.now();
+        const payload = (await request.json()) as AuthCredentialPayload;
+        const email = normalizeEmail(String(payload?.email || ""));
+
+        if (!isValidEmail(email)) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(request, { error: "メールアドレスを確認して、もう一度お試しください。" }, 400);
+        }
+
+        const limiterResponse = await consumeAuthAttempt(env, request, PASSWORD_RESET_RATE_LIMIT_POLICY, email);
+        if (limiterResponse) {
+          await ensureMinimumResponseDuration(startedAt);
+          return limiterResponse;
+        }
+
+        const redirectTo = buildLoginReturnUrl(request, env);
+        const supabaseResponse = await postSupabaseAuthJson(env, "/auth/v1/recover", {
+          email,
+          redirect_to: redirectTo,
+        });
+
+        if (!supabaseResponse.ok) {
+          await ensureMinimumResponseDuration(startedAt);
+          return jsonResponse(
+            request,
+            { error: "再設定メールを送信できませんでした。時間をおいてもう一度お試しください。" },
+            400,
+          );
+        }
+
+        await ensureMinimumResponseDuration(startedAt);
+        return jsonResponse(request, {
+          ok: true,
+          accepted: true,
         });
       }
 

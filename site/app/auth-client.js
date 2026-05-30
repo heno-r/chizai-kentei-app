@@ -358,6 +358,14 @@
         }
         return result;
     }
+    async function requestPasswordReset(email) {
+        if (authMode !== "supabase") {
+            throw new Error("password reset is only available in supabase mode");
+        }
+        return postPublicAuth("/api/public/auth/password-reset", {
+            email,
+        });
+    }
     async function signInWithEmailPassword(email, password) {
         if (authMode !== "supabase") {
             throw new Error("email sign in is only available in supabase mode");
@@ -370,6 +378,40 @@
             await applySupabaseSession(result.session);
         }
         return ensureSignedInStatusAfterAuth("supabase_signin_completed");
+    }
+    async function isPasswordRecoverySession() {
+        if (authMode !== "supabase" || !isSupabaseConfigured()) {
+            return false;
+        }
+        if (typeof window === "undefined") {
+            return false;
+        }
+        const recoveryHint = `${window.location.search}${window.location.hash}`;
+        if (!recoveryHint.includes("type=recovery") && !recoveryHint.includes("access_token=")) {
+            return false;
+        }
+        const client = await getSupabaseClient();
+        if (!client) {
+            return false;
+        }
+        const { data: { session }, } = await client.auth.getSession();
+        return Boolean(session?.access_token);
+    }
+    async function updatePasswordWithRecovery(password) {
+        if (authMode !== "supabase") {
+            throw new Error("password update is only available in supabase mode");
+        }
+        const client = await getSupabaseClient();
+        if (!client) {
+            throw new Error("login client unavailable");
+        }
+        const { error } = await client.auth.updateUser({
+            password,
+        });
+        if (error) {
+            throw error;
+        }
+        return ensureSignedInStatusAfterAuth("supabase_password_updated");
     }
     async function signOut() {
         clearLocalSession();
@@ -388,6 +430,9 @@
         signInAsPremium: () => signInAs("premium"),
         signUpWithEmail,
         signInWithEmailPassword,
+        requestPasswordReset,
+        isPasswordRecoverySession,
+        updatePasswordWithRecovery,
         startCheckout: () => postSecure("/api/secure/billing/checkout/start"),
         completeCheckout: () => postSecure("/api/secure/billing/checkout/complete"),
         signOut,

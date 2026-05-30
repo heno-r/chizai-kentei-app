@@ -13,10 +13,17 @@
     const passwordInput = document.getElementById("login-password");
     const emailSignInButton = document.getElementById("login-email-signin-button");
     const emailSignUpButton = document.getElementById("login-email-signup-button");
+    const passwordResetButton = document.getElementById("login-password-reset-button");
+    const recoveryModeWrap = document.getElementById("login-recovery-mode");
+    const recoveryPasswordInput = document.getElementById("login-recovery-password");
+    const recoveryPasswordConfirmInput = document.getElementById("login-recovery-password-confirm");
+    const recoverySaveButton = document.getElementById("login-recovery-save-button");
+    const recoveryCancelButton = document.getElementById("login-recovery-cancel-button");
     const logoutButton = document.getElementById("login-logout-button");
     const infoMessage = document.getElementById("login-info-message");
     const supabaseChecklist = document.getElementById("login-supabase-checklist");
     let authCooldownTimerId = 0;
+    let recoveryModeActive = false;
     function formatReturnToLabel(path) {
         if (path.startsWith("/premium/ready/")) {
             return "購入前チェック";
@@ -103,6 +110,17 @@
         if (emailSignUpButton) {
             emailSignUpButton.disabled = disabled;
         }
+        if (passwordResetButton) {
+            passwordResetButton.disabled = disabled;
+        }
+    }
+    function setRecoveryButtonsDisabled(disabled) {
+        if (recoverySaveButton) {
+            recoverySaveButton.disabled = disabled;
+        }
+        if (recoveryCancelButton) {
+            recoveryCancelButton.disabled = disabled;
+        }
     }
     function renderAuthCooldown() {
         const remaining = getRemainingCooldownSeconds();
@@ -139,13 +157,51 @@
         clearAuthThrottleState();
         renderAuthCooldown();
     }
+    function clearRecoveryTokensFromUrl() {
+        if (typeof window === "undefined") {
+            return;
+        }
+        const hash = window.location.hash || "";
+        if (!hash.includes("access_token=") && !hash.includes("refresh_token=") && !hash.includes("type=recovery")) {
+            return;
+        }
+        const cleanedUrl = `${window.location.pathname}${window.location.search}`;
+        window.history.replaceState({}, document.title, cleanedUrl);
+    }
+    function renderRecoveryMode(enabled) {
+        recoveryModeActive = enabled;
+        supabaseModeWrap?.classList.toggle("hidden", enabled);
+        recoveryModeWrap?.classList.toggle("hidden", !enabled);
+        supabaseChecklist?.classList.toggle("hidden", enabled);
+        if (!enabled) {
+            recoveryPasswordInput && (recoveryPasswordInput.value = "");
+            recoveryPasswordConfirmInput && (recoveryPasswordConfirmInput.value = "");
+        }
+    }
+    function validatePasswordForRecovery(password, passwordConfirm) {
+        if (!password) {
+            return "新しいパスワードを入力してください。";
+        }
+        if (password.length < 10) {
+            return "パスワードは10文字以上で設定してください。";
+        }
+        if (password.length > 200) {
+            return "パスワードが長すぎます。200文字以内で入力してください。";
+        }
+        if (password !== passwordConfirm) {
+            return "確認用のパスワードが一致していません。";
+        }
+        return null;
+    }
     function renderMode() {
         const mode = authClient?.getMode?.();
         const isSupabase = mode === "supabase";
         const isDisabledRemoteStub = mode === "disabled_remote_stub";
         localModeWrap?.classList.toggle("hidden", isSupabase || isDisabledRemoteStub);
-        supabaseModeWrap?.classList.toggle("hidden", !isSupabase);
-        supabaseChecklist?.classList.toggle("hidden", !isSupabase);
+        if (!recoveryModeActive) {
+            supabaseModeWrap?.classList.toggle("hidden", !isSupabase);
+        }
+        supabaseChecklist?.classList.toggle("hidden", !isSupabase || recoveryModeActive);
         if (isDisabledRemoteStub) {
             showInfo("この環境ではメールログインで続けられます。");
         }
@@ -163,6 +219,12 @@
         }
         if (message) {
             return message;
+        }
+        if (action === "reset") {
+            return "再設定メールを送信できませんでした。時間をおいてもう一度お試しください。";
+        }
+        if (action === "recovery") {
+            return "新しいパスワードを設定できませんでした。再設定メールの案内からもう一度お試しください。";
         }
         return action === "signup"
             ? "アカウント作成を完了できませんでした。入力内容を確認し、時間をおいてもう一度お試しください。"
@@ -210,6 +272,20 @@
             return;
         }
         try {
+            const isRecoverySession = await authClient.isPasswordRecoverySession();
+            if (isRecoverySession) {
+                clearRecoveryTokensFromUrl();
+                renderRecoveryMode(true);
+                if (currentStatus) {
+                    currentStatus.textContent = "再設定手続き中";
+                }
+                if (statusCopy) {
+                    statusCopy.textContent = "新しいパスワードを設定すると、そのまま購入状態の確認や学習の続きへ進めます。";
+                }
+                showInfo("新しいパスワードを入力してください。設定後はそのまま元の画面へ戻れます。");
+                return;
+            }
+            renderRecoveryMode(false);
             const status = await authClient.fetchLicenseStatus();
             if (status.source === "supabase_config_missing") {
                 showInfo("ログインの準備がまだ完了していません。時間をおいてもう一度お試しください。");
@@ -226,6 +302,64 @@
                 signed_in: false,
                 active_plan: "free",
             });
+        }
+    }
+    async function requestPasswordReset() {
+        if (!authClient || !emailInput) {
+            return;
+        }
+        const email = emailInput.value.trim();
+        if (!email) {
+            showInfo("再設定メールを受け取るメールアドレスを入力してください。");
+            return;
+        }
+        setAuthButtonsDisabled(true);
+        setButtonBusy(passwordResetButton, true, "送信中...");
+        try {
+            await authClient.requestPasswordReset(email);
+            showInfo("再設定メールを送信しました。メールの案内に沿って新しいパスワードを設定してください。");
+        }
+        catch (error) {
+            console.warn("password reset request failed", error);
+            showInfo(formatSupabaseError(error, "reset"));
+        }
+        finally {
+            setButtonBusy(passwordResetButton, false);
+            if (getRemainingCooldownSeconds() <= 0) {
+                setAuthButtonsDisabled(false);
+            }
+        }
+    }
+    async function updatePasswordWithRecovery() {
+        if (!authClient || !recoveryPasswordInput || !recoveryPasswordConfirmInput) {
+            return;
+        }
+        const password = recoveryPasswordInput.value;
+        const passwordConfirm = recoveryPasswordConfirmInput.value;
+        const validationMessage = validatePasswordForRecovery(password, passwordConfirm);
+        if (validationMessage) {
+            showInfo(validationMessage);
+            return;
+        }
+        setRecoveryButtonsDisabled(true);
+        setButtonBusy(recoverySaveButton, true, "更新中...");
+        try {
+            const status = await authClient.updatePasswordWithRecovery(password);
+            renderRecoveryMode(false);
+            renderMode();
+            renderStatus(status);
+            showInfo("新しいパスワードを設定しました。元の画面へ戻ります。");
+            window.setTimeout(() => {
+                window.location.href = getReturnToPath();
+            }, 350);
+        }
+        catch (error) {
+            console.warn("password recovery update failed", error);
+            showInfo(formatSupabaseError(error, "recovery"));
+        }
+        finally {
+            setButtonBusy(recoverySaveButton, false);
+            setRecoveryButtonsDisabled(false);
         }
     }
     async function signIn(planKey) {
@@ -359,6 +493,17 @@
     });
     emailSignUpButton?.addEventListener("click", () => {
         void signUpWithEmail();
+    });
+    passwordResetButton?.addEventListener("click", () => {
+        void requestPasswordReset();
+    });
+    recoverySaveButton?.addEventListener("click", () => {
+        void updatePasswordWithRecovery();
+    });
+    recoveryCancelButton?.addEventListener("click", () => {
+        renderRecoveryMode(false);
+        renderMode();
+        showInfo("ログイン画面へ戻りました。再設定メールの案内が必要な場合は、もう一度お試しください。");
     });
     logoutButton?.addEventListener("click", async () => {
         await authClient?.signOut();

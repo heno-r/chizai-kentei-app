@@ -388,6 +388,29 @@ dd {
   margin: 14px 0 18px;
 }
 
+.auth-subactions {
+  display: flex;
+  justify-content: flex-start;
+  margin: 8px 0 0;
+}
+
+.text-button {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--brand-strong);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.text-button:disabled {
+  opacity: 0.68;
+  cursor: wait;
+}
+
 .auth-field {
   display: grid;
   gap: 8px;
