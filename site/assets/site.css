@@ -394,6 +394,16 @@ dd {
   margin: 8px 0 0;
 }
 
+.auth-inline-message {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 109, 90, 0.18);
+  background: rgba(255, 255, 255, 0.84);
+  color: var(--muted);
+  line-height: 1.7;
+}
+
 .text-button {
   padding: 0;
   border: none;

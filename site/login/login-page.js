@@ -13,12 +13,14 @@
     const passwordInput = document.getElementById("login-password");
     const emailSignInButton = document.getElementById("login-email-signin-button");
     const emailSignUpButton = document.getElementById("login-email-signup-button");
+    const loginFormMessage = document.getElementById("login-form-message");
     const passwordResetButton = document.getElementById("login-password-reset-button");
     const recoveryModeWrap = document.getElementById("login-recovery-mode");
     const recoveryPasswordInput = document.getElementById("login-recovery-password");
     const recoveryPasswordConfirmInput = document.getElementById("login-recovery-password-confirm");
     const recoverySaveButton = document.getElementById("login-recovery-save-button");
     const recoveryCancelButton = document.getElementById("login-recovery-cancel-button");
+    const recoveryMessage = document.getElementById("login-recovery-message");
     const logoutButton = document.getElementById("login-logout-button");
     const infoMessage = document.getElementById("login-info-message");
     const supabaseChecklist = document.getElementById("login-supabase-checklist");
@@ -76,6 +78,32 @@
         }
         infoMessage.textContent = message;
         infoMessage.classList.remove("hidden");
+    }
+    function hideInfo() {
+        if (!infoMessage) {
+            return;
+        }
+        infoMessage.textContent = "";
+        infoMessage.classList.add("hidden");
+    }
+    function showInlineMessage(target, message) {
+        if (!target) {
+            showInfo(message);
+            return;
+        }
+        target.textContent = message;
+        target.classList.remove("hidden");
+    }
+    function hideInlineMessage(target) {
+        if (!target) {
+            return;
+        }
+        target.textContent = "";
+        target.classList.add("hidden");
+    }
+    function clearInlineMessages() {
+        hideInlineMessage(loginFormMessage);
+        hideInlineMessage(recoveryMessage);
     }
     function readAuthThrottleState() {
         try {
@@ -173,6 +201,7 @@
         supabaseModeWrap?.classList.toggle("hidden", enabled);
         recoveryModeWrap?.classList.toggle("hidden", !enabled);
         supabaseChecklist?.classList.toggle("hidden", enabled);
+        clearInlineMessages();
         if (!enabled) {
             recoveryPasswordInput && (recoveryPasswordInput.value = "");
             recoveryPasswordConfirmInput && (recoveryPasswordConfirmInput.value = "");
@@ -263,6 +292,7 @@
     async function refresh() {
         renderMode();
         renderAuthCooldown();
+        clearInlineMessages();
         if (!authClient) {
             showInfo("ログイン画面の準備がまだ完了していません。時間をおいてもう一度お試しください。");
             renderStatus({
@@ -310,18 +340,22 @@
         }
         const email = emailInput.value.trim();
         if (!email) {
-            showInfo("再設定メールを受け取るメールアドレスを入力してください。");
+            hideInfo();
+            showInlineMessage(loginFormMessage, "再設定メールを受け取るメールアドレスを入力してください。");
             return;
         }
+        hideInlineMessage(loginFormMessage);
         setAuthButtonsDisabled(true);
         setButtonBusy(passwordResetButton, true, "送信中...");
         try {
             await authClient.requestPasswordReset(email);
-            showInfo("再設定メールを送信しました。メールの案内に沿って新しいパスワードを設定してください。");
+            hideInfo();
+            showInlineMessage(loginFormMessage, "再設定メールを送信しました。メールの案内に沿って新しいパスワードを設定してください。");
         }
         catch (error) {
             console.warn("password reset request failed", error);
-            showInfo(formatSupabaseError(error, "reset"));
+            hideInfo();
+            showInlineMessage(loginFormMessage, formatSupabaseError(error, "reset"));
         }
         finally {
             setButtonBusy(passwordResetButton, false);
@@ -338,9 +372,11 @@
         const passwordConfirm = recoveryPasswordConfirmInput.value;
         const validationMessage = validatePasswordForRecovery(password, passwordConfirm);
         if (validationMessage) {
-            showInfo(validationMessage);
+            hideInfo();
+            showInlineMessage(recoveryMessage, validationMessage);
             return;
         }
+        hideInlineMessage(recoveryMessage);
         setRecoveryButtonsDisabled(true);
         setButtonBusy(recoverySaveButton, true, "更新中...");
         try {
@@ -355,7 +391,8 @@
         }
         catch (error) {
             console.warn("password recovery update failed", error);
-            showInfo(formatSupabaseError(error, "recovery"));
+            hideInfo();
+            showInlineMessage(recoveryMessage, formatSupabaseError(error, "recovery"));
         }
         finally {
             setButtonBusy(recoverySaveButton, false);
@@ -404,9 +441,11 @@
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         if (!email || !password) {
-            showInfo("メールアドレスとパスワードを入力してください。");
+            hideInfo();
+            showInlineMessage(loginFormMessage, "メールアドレスとパスワードを入力してください。");
             return;
         }
+        hideInlineMessage(loginFormMessage);
         setAuthButtonsDisabled(true);
         setButtonBusy(emailSignInButton, true, "ログイン中...");
         try {
@@ -425,7 +464,8 @@
             registerLocalAuthFailure(typeof error === "object" && error && "retryAfterSeconds" in error
                 ? Number(error.retryAfterSeconds || 0)
                 : undefined);
-            showInfo(formatSupabaseError(error, "signin"));
+            hideInfo();
+            showInlineMessage(loginFormMessage, formatSupabaseError(error, "signin"));
         }
         finally {
             setButtonBusy(emailSignInButton, false);
@@ -445,9 +485,11 @@
         const email = emailInput.value.trim();
         const password = passwordInput.value;
         if (!email || !password) {
-            showInfo("メールアドレスとパスワードを入力してください。");
+            hideInfo();
+            showInlineMessage(loginFormMessage, "メールアドレスとパスワードを入力してください。");
             return;
         }
+        hideInlineMessage(loginFormMessage);
         setAuthButtonsDisabled(true);
         setButtonBusy(emailSignUpButton, true, "作成中...");
         try {
@@ -473,7 +515,8 @@
             registerLocalAuthFailure(typeof error === "object" && error && "retryAfterSeconds" in error
                 ? Number(error.retryAfterSeconds || 0)
                 : undefined);
-            showInfo(formatSupabaseError(error, "signup"));
+            hideInfo();
+            showInlineMessage(loginFormMessage, formatSupabaseError(error, "signup"));
         }
         finally {
             setButtonBusy(emailSignUpButton, false);
