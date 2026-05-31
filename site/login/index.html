@@ -6,7 +6,7 @@
     <title>ログイン | しけん準備室 知財3級対策</title>
     <meta
       name="description"
-      content="しけん準備室 知財3級対策のログインページです。購入状態の確認やプレミアム版の利用再開を、この画面から続けられます。"
+      content="しけん準備室 知財3級対策のログインページです。購入状況の確認やプレミアム版の利用再開を、この画面から続けられます。"
     />
     <link rel="stylesheet" href="/assets/site.css" />
     <script defer src="/assets/runtime-config.js"></script>
@@ -18,9 +18,9 @@
       <header class="topbar">
         <a class="brand" href="/">しけん準備室</a>
         <nav class="topnav">
-          <a href="/">LP</a>
+          <a href="/">トップ</a>
           <a href="/app/">無料版を試す</a>
-          <a href="/premium/">3級プレミアム版の案内</a>
+          <a href="/premium/">プレミアム版について</a>
         </nav>
       </header>
 
@@ -34,8 +34,8 @@
               はじめて使う方は、この画面からアカウントを作成できます。
             </p>
             <div id="login-local-mode" class="hero-actions hidden">
-              <button id="login-free-button" class="button button-secondary" type="button">無料版の状態で続ける</button>
-              <button id="login-premium-button" class="button button-primary" type="button">プレミアム版の状態で続ける</button>
+              <button id="login-free-button" class="button button-secondary" type="button">無料版として続ける</button>
+              <button id="login-premium-button" class="button button-primary" type="button">プレミアム版として続ける</button>
             </div>
             <div id="login-supabase-mode" class="panel auth-form-panel">
               <p class="section-kicker">メールアドレスで続ける</p>
@@ -67,7 +67,7 @@
               <p class="section-kicker">新しいパスワードを設定</p>
               <p>
                 再設定メールから戻った方は、ここで新しいパスワードを入力してください。
-                設定後は、そのまま学習画面や購入前チェックへ戻れます。
+                設定後は、そのまま学習ページや購入前の確認ページへ戻れます。
               </p>
               <div class="auth-form-grid">
                 <label class="auth-field">
@@ -93,11 +93,11 @@
               </div>
               <div>
                 <dt>ログイン後の戻り先</dt>
-                <dd id="login-return-target">学習画面</dd>
+                <dd id="login-return-target">学習ページ</dd>
               </div>
               <div>
                 <dt>利用内容</dt>
-                <dd>3級の学習と購入状態の確認</dd>
+                <dd>3級の学習と購入状況の確認</dd>
               </div>
             </dl>
           </div>
@@ -105,9 +105,9 @@
           <aside class="hero-card">
             <p class="card-label">このページでできること</p>
             <ul class="check-list">
-              <li>購入状態やプレミアム版の利用可否を確認する</li>
-              <li>無料版の学習画面や購入前チェックへ戻る</li>
-              <li>アカウントを作成して次回以降も同じ状態で続ける</li>
+              <li>購入状況やプレミアム版が使えるかどうかを確認する</li>
+              <li>無料版の学習ページや購入前の確認ページへ戻る</li>
+              <li>アカウントを作成して次回以降も同じ内容から続ける</li>
               <li>必要に応じてログアウトして切り替える</li>
             </ul>
           </aside>
@@ -121,12 +121,12 @@
             </div>
             <div class="cta-actions">
               <button id="login-logout-button" class="button button-secondary hidden" type="button">ログアウト</button>
-              <a class="button button-secondary" href="/premium/">プレミアム版の案内を見る</a>
+              <a class="button button-secondary" href="/premium/">プレミアム版について見る</a>
               <a class="button button-secondary" href="/app/">無料版へ戻る</a>
             </div>
           </div>
           <p id="login-status-copy">
-            ログインすると、購入状態の確認やプレミアム版の利用再開をこのまま進められます。
+            ログインすると、購入状況の確認やプレミアム版の利用再開をこのまま進められます。
           </p>
           <div id="login-info-message" class="premium-inline-note hidden"></div>
         </section>

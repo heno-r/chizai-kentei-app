@@ -31,10 +31,10 @@
         return runtimeConfig.appEntryPath || "/app/";
     }
     function getCheckoutProviderLabel() {
-        return isStripeCheckout ? "Stripe" : "ローカル確認モード";
+        return isStripeCheckout ? "決済画面" : "購入手続き";
     }
     function showPurchasePausedMessage(target) {
-        showMessage(target, "プレミアム版の購入受付は、Stripe の本番審査が完了するまで一時停止しています。無料版とプレミアム版の案内はそのまま確認できます。");
+        showMessage(target, "現在は購入受付を一時停止しています。無料版とプレミアム版の内容はそのまま確認できます。");
     }
     function showMessage(target, text) {
         if (!target)
@@ -61,20 +61,20 @@
             target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
             return false;
         }
-        showMessage(target, "購入手続きに進む前に、先にログインしてください。無料版の状態でログインしたあとにもう一度押せます。");
+        showMessage(target, "購入手続きに進む前に、先にログインしてください。ログインしたあとにもう一度押せます。");
         target?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         return false;
     }
     readyCheckButton?.addEventListener("click", () => {
-        showMessage(readyMessage, `無料版の相性確認が済んでいて、苦手復習や直前14日モードが必要だと感じているなら、3級プレミアム版 (${getPremiumPriceText()}) に進みやすい状態です。`);
+        showMessage(readyMessage, `無料版を試していて、苦手復習や直前14日モードが必要だと感じているなら、3級プレミアム版 (${getPremiumPriceText()}) を考えやすい段階です。`);
         readyMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     needTrialButton?.addEventListener("click", () => {
-        showMessage(needTrialMessage, "まだ『問題形式が自分に合うか』『どのカテゴリが苦手か』が見えていないなら、まずは無料版をもう少し触ってから判断する流れが自然です。");
+        showMessage(needTrialMessage, "まだ『問題形式が自分に合うか』『どのカテゴリが苦手か』が見えていないなら、まずは無料版をもう少し使ってから判断する流れが自然です。");
         needTrialMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     loginPlaceholderButton?.addEventListener("click", () => {
-        showMessage(loginPlaceholderMessage, "ログイン画面へ進みます。購入前チェックの続きや、購入済み状態の確認はログイン後にそのまま続けられます。");
+        showMessage(loginPlaceholderMessage, "ログイン画面へ進みます。購入前の確認の続きや、購入済みかどうかの確認はログイン後にそのまま続けられます。");
         loginPlaceholderMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         window.setTimeout(() => {
             const target = new URL(getLoginPath(), window.location.origin);
@@ -83,12 +83,12 @@
         }, 250);
     });
     loginFlowButton?.addEventListener("click", () => {
-        showMessage(loginFlowMessage, "流れは『無料版を試す -> 購入前チェックでログイン -> 購入または購入済み確認 -> プレミアム版の機能を解放』です。ログイン後は購入前チェックページかプレミアム版案内ページへ戻れます。");
+        showMessage(loginFlowMessage, "流れは『無料版を試す -> 購入前の確認ページでログイン -> 購入または購入済み確認 -> プレミアム版を使い始める』です。ログイン後は購入前の確認ページかプレミアム版の内容ページへ戻れます。");
         loginFlowMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     startCheckoutButton?.addEventListener("click", async () => {
         if (!authClient?.startCheckout) {
-            showMessage(startCheckoutMessage, "この環境では購入手続きの再現がまだ使えません。接続状態を確認してから、もう一度お試しください。");
+            showMessage(startCheckoutMessage, "この環境では購入手続きに接続できませんでした。接続状態を確認してから、もう一度お試しください。");
             return;
         }
         if (!purchaseEnabled) {
@@ -101,7 +101,7 @@
             return;
         }
         if (currentStatus?.active_plan === "premium") {
-            showMessage(startCheckoutMessage, "すでにプレミアム版を利用できる状態です。このまま学習画面へ戻ります。");
+            showMessage(startCheckoutMessage, "すでにプレミアム版を利用できる状態です。このまま学習ページへ戻ります。");
             startCheckoutMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
             window.setTimeout(() => {
                 window.location.href = getAppPath();
@@ -110,16 +110,16 @@
         }
         try {
             const payload = await authClient.startCheckout();
-            const providerLabel = payload?.checkout_provider === "stripe" ? "Stripe" : getCheckoutProviderLabel();
+            const providerLabel = getCheckoutProviderLabel();
             if (payload?.checkout_provider === "stripe" && payload?.checkout_url) {
-                showMessage(startCheckoutMessage, `Stripe のテスト決済画面へ移動します。checkout_id: ${payload.checkout_id}。画面が切り替わらない場合は、もう一度ボタンを押してください。`);
+                showMessage(startCheckoutMessage, "決済画面へ移動します。画面が切り替わらない場合は、少し待ってからもう一度お試しください。");
                 startCheckoutMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
                 window.setTimeout(() => {
                     window.location.href = payload.checkout_url;
                 }, 250);
                 return;
             }
-            showMessage(startCheckoutMessage, `購入手続き中の状態を記録しました。checkout_id: ${payload.checkout_id}。決済プロバイダ: ${providerLabel}。このまま購入完了を試すと、プレミアム版の状態へ切り替わります。`);
+            showMessage(startCheckoutMessage, `${providerLabel}の準備ができました。このまま案内に沿って進めると、購入後にプレミアム版の状態へ切り替わります。`);
             startCheckoutMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         }
         catch (error) {
@@ -131,7 +131,7 @@
     });
     simulatePurchaseButton?.addEventListener("click", async () => {
         if (!authClient?.completeCheckout) {
-            showMessage(simulatePurchaseMessage, "この環境では購入後状態の再現がまだ使えません。接続状態を確認してから、もう一度お試しください。");
+            showMessage(simulatePurchaseMessage, "この環境では購入後の確認に接続できませんでした。接続状態を確認してから、もう一度お試しください。");
             return;
         }
         const signedIn = await requireSignedIn(simulatePurchaseMessage);
@@ -139,7 +139,7 @@
             return;
         }
         try {
-            showMessage(simulatePurchaseMessage, "ローカルでは、購入完了を再現してプレミアム版の状態で無料版アプリへ戻します。");
+            showMessage(simulatePurchaseMessage, "購入完了後の状態を確認しています。完了後はプレミアム版の状態で学習ページへ戻ります。");
             simulatePurchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
             await authClient.completeCheckout();
             window.setTimeout(() => {
@@ -154,7 +154,7 @@
         }
     });
     purchaseStateButton?.addEventListener("click", () => {
-        showMessage(purchaseStateMessage, "購入状態は『未購入 -> 購入中 -> 購入成功 -> ライセンス反映済み』の4段で考えます。決済完了直後は、短時間だけ反映確認中の表示が出ることがあります。");
+        showMessage(purchaseStateMessage, "購入の進み方は『未購入 -> 購入中 -> 購入完了 -> 反映完了』の順です。決済直後は、短時間だけ反映待ちになることがあります。");
         purchaseStateMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     returnTargetButton?.addEventListener("click", () => {
@@ -208,7 +208,7 @@
                 if (startCheckoutButton) {
                     startCheckoutButton.textContent = "プレミアム版で学習を続ける";
                 }
-                showMessage(loginPlaceholderMessage, "現在はプレミアム版を利用できる状態です。このまま学習画面へ戻って続きを進められます。");
+                showMessage(loginPlaceholderMessage, "現在はプレミアム版を利用できる状態です。このまま学習ページへ戻って続きを進められます。");
                 return;
             }
             if (startCheckoutButton) {
@@ -216,7 +216,7 @@
             }
             showMessage(loginPlaceholderMessage, purchaseEnabled
                 ? "ログイン済みです。内容と価格に問題がなければ、そのまま購入手続きへ進めます。"
-                : "ログイン済みです。プレミアム版の案内は確認できますが、購入受付は一時停止しています。");
+                : "ログイン済みです。プレミアム版の内容は確認できますが、購入受付は一時停止しています。");
         }
         catch (error) {
             console.warn("purchase ready license status load failed", error);

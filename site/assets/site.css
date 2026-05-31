@@ -279,6 +279,10 @@ dd {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.flow-grid-tight {
+  gap: 14px;
+}
+
 .panel-head-row {
   display: flex;
   justify-content: space-between;
@@ -305,6 +309,21 @@ dd {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(58, 43, 28, 0.08);
   background: rgba(255, 255, 255, 0.68);
+}
+
+.journey-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.journey-grid article {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.journey-grid .button,
+.journey-grid .text-link {
+  justify-self: start;
 }
 
 .compare-card-accent {
@@ -648,6 +667,7 @@ dd {
   .premium-compare-grid,
   .flow-grid,
   .feature-preview-grid,
+  .journey-grid,
   .article-highlight-grid,
   .article-pitfall-grid {
     grid-template-columns: 1fr;

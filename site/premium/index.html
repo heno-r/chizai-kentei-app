@@ -6,7 +6,7 @@
     <title>3級プレミアム版のご案内 | しけん準備室 知財3級対策</title>
     <meta
       name="description"
-      content="しけん準備室 知財3級対策の3級プレミアム版のご案内です。無料版との違い、使える機能、試験1か月前の進め方をまとめています。"
+      content="しけん準備室 知財3級対策の3級プレミアム版の紹介です。無料版との違い、向いている人、購入前に見ておきたい内容をまとめています。"
     />
     <link rel="stylesheet" href="/assets/site.css" />
     <script defer src="/assets/runtime-config.js"></script>
@@ -17,9 +17,9 @@
       <header class="topbar">
         <a class="brand" href="/">しけん準備室</a>
         <nav class="topnav">
-          <a href="/">LP</a>
-          <a href="/diagnosis/">無料診断</a>
+          <a href="/">トップ</a>
           <a href="/app/">無料版を試す</a>
+          <a href="/diagnosis/">無料診断</a>
           <a href="/login/">ログイン</a>
         </nav>
       </header>
@@ -28,83 +28,76 @@
         <section class="hero">
           <div class="hero-copy">
             <p class="eyebrow">3級プレミアム版</p>
-            <h1>3級プレミアム版で、直前1か月を迷わず仕上げる。</h1>
+            <h1>苦手復習と直前対策を、ひとつの流れで回したい人へ。</h1>
             <p class="lead">
-              3級プレミアム版の価値は、単に問題数が増えることではありません。
-              苦手が分かり、間違えた問題を自動で回し直せて、直前14日モードで仕上げの順番まで決まることです。
+              プレミアム版は、問題数を増やすためだけのものではありません。
+              間違えた問題を回し直し、苦手カテゴリを見ながら、直前期の優先順位まで決めやすくするための構成です。
             </p>
             <div class="hero-actions">
-              <a class="button button-primary" href="/app/">まずは無料版を試す</a>
-              <a class="button button-secondary" href="/premium/ready/">価格と流れを見てから進む</a>
+              <a class="button button-secondary" href="/app/">まずは無料版を試す</a>
+              <a class="button button-primary" href="/premium/ready/">購入前の確認へ進む</a>
             </div>
             <dl class="hero-metrics">
               <div>
-                <dt>価格目安</dt>
-                <dd>1,200円 / 追加月額料金なし</dd>
+                <dt>価格</dt>
+                <dd>1,200円の買い切り</dd>
               </div>
               <div>
                 <dt>対象</dt>
-                <dd>知的財産管理技能検定3級</dd>
+                <dd>知財3級の直前期</dd>
               </div>
               <div>
-                <dt>役割</dt>
-                <dd>合格効率を上げる</dd>
+                <dt>主な役割</dt>
+                <dd>苦手を残さず仕上げる</dd>
               </div>
             </dl>
           </div>
 
           <aside class="hero-card">
-            <p class="card-label">プレミアム版でできること</p>
+            <p class="card-label">先に結論だけ見る</p>
             <ul class="check-list">
-              <li>3級の全問題をまとめて学習</li>
-              <li>カテゴリ別学習で苦手だけを集中復習</li>
-              <li>間違えた問題だけ復習</li>
-              <li>要復習キューと優先復習</li>
-              <li>今日のおすすめ問題</li>
-              <li>直前14日モード</li>
-              <li>試験日までの学習プラン</li>
-              <li>詳細な学習履歴</li>
+              <li>まずは無料版の使いやすさ確認が先</li>
+              <li>苦手だけを回したくなったら向いている</li>
+              <li>試験1か月前から価値が出やすい</li>
+              <li>購入前の確認ページで手続き前の内容を見られる</li>
             </ul>
           </aside>
         </section>
 
         <section class="section-grid">
           <article class="panel">
-            <p class="section-kicker">無料版との違い</p>
-            <h2>無料版は体験、プレミアム版は仕上げ</h2>
-            <p>
-              無料版では、出題形式に慣れながら3級の基本論点を試せます。
-              3級プレミアム版では、その先の「どこを復習すべきか」「直前期に何から解くべきか」まで案内します。
-            </p>
+            <p class="section-kicker">こんな人に向いています</p>
+            <h2>無料版を試して、次の悩みが出てきた人</h2>
+            <ul class="check-list">
+              <li>苦手だけを繰り返したい</li>
+              <li>毎回どこから復習するか迷う</li>
+              <li>試験1か月前に入って優先順位を決めたい</li>
+              <li>直前2週間で仕上げモードに切り替えたい</li>
+            </ul>
+            <button id="fit-check-button" class="button button-secondary" type="button">自分に向いているか確認する</button>
+            <div id="premium-fit-message" class="premium-inline-note hidden"></div>
           </article>
 
-          <article class="panel accent-panel">
-            <p class="section-kicker">価格</p>
-            <h2>買い切りで3級対策を最後まで回す</h2>
-            <div class="price-grid">
-              <div>
-                <span class="price-name">無料版</span>
-                <strong class="price-value">0円</strong>
-                <p>50問でお試し。順番学習とランダム学習を体験。</p>
-              </div>
-              <div>
-                <span class="price-name">3級プレミアム版</span>
-                <strong class="price-value">1,200円</strong>
-                <p>全問題、苦手復習、今日のおすすめ、直前14日モードまで解放。</p>
-                <p>買い切りです。追加月額料金はありません。</p>
-              </div>
-            </div>
+          <article class="panel muted-panel">
+            <p class="section-kicker">まだ早いケース</p>
+            <h2>まずは無料版だけでよい人</h2>
+            <ul class="check-list">
+              <li>まだ問題形式の使いやすさ確認が済んでいない</li>
+              <li>苦手カテゴリが見えていない</li>
+              <li>試験まで余裕があり、直前期の進め方をまだ固定しなくてよい</li>
+              <li>まずは無料で続けられるかを見たい</li>
+            </ul>
           </article>
         </section>
 
         <section class="panel premium-compare-panel">
           <div class="panel-head-row">
             <div>
-              <p class="section-kicker">比較</p>
-              <h2>無料版の次に増えるものだけを、先に確認する</h2>
+              <p class="section-kicker">無料版との違い</p>
+              <h2>増えるのは問題数だけではなく、復習のしやすさです</h2>
             </div>
             <div class="cta-actions">
-              <button id="purchase-ready-button" class="button button-primary" type="button">購入前チェックへ進む</button>
+              <button id="purchase-ready-button" class="button button-primary" type="button">購入前の確認へ進む</button>
             </div>
           </div>
           <div class="premium-compare-grid">
@@ -112,26 +105,20 @@
               <span class="price-name">無料版</span>
               <strong class="price-value">0円</strong>
               <ul class="compare-list">
-                <li>50問で出題形式を体験</li>
-                <li>順番学習</li>
-                <li>ランダム学習</li>
-                <li>正誤判定と基本解説</li>
-                <li>簡易的な履歴表示</li>
+                <li>50問で出題形式を試せる</li>
+                <li>順番学習とランダム学習</li>
+                <li>基本解説を確認できる</li>
+                <li>使いやすさを見てから次を決められる</li>
               </ul>
             </article>
             <article class="compare-card compare-card-accent">
               <span class="price-name">3級プレミアム版</span>
               <strong class="price-value">1,200円</strong>
               <ul class="compare-list">
-                <li>3級の全問題</li>
-                <li>カテゴリ別学習</li>
-                <li>間違えた問題だけ復習</li>
-                <li>要復習キューと優先復習</li>
-                <li>苦手カテゴリ分析</li>
-                <li>今日のおすすめ問題</li>
-                <li>直前14日モード</li>
-                <li>試験日までの学習プラン</li>
-                <li>詳細な学習履歴</li>
+                <li>3級の全問題を利用できる</li>
+                <li>間違えた問題だけを復習できる</li>
+                <li>苦手カテゴリ分析と優先復習キュー</li>
+                <li>今日のおすすめ問題と直前14日モード</li>
               </ul>
             </article>
           </div>
@@ -141,168 +128,84 @@
         <section class="panel">
           <div class="panel-head-row">
             <div>
-              <p class="section-kicker">購入後の流れ</p>
-              <h2>購入してから迷わず使い始めるまで</h2>
-            </div>
-            <div class="cta-actions">
-              <button id="purchase-flow-button" class="button button-secondary" type="button">購入後の流れを確認する</button>
-              <button id="device-check-button" class="button button-secondary" type="button">対応端末を確認する</button>
+              <p class="section-kicker">最初に使う機能</p>
+              <h2>購入直後は、この3つから入ると流れがつかみやすくなります</h2>
             </div>
           </div>
-          <div class="flow-grid">
-            <article class="flow-step">
+          <div class="feature-preview-grid">
+            <article class="preview-card">
+              <h3>間違えた問題だけ復習</h3>
+              <p>まずは一度つまずいた問題をまとめて回し直し、苦手の輪郭をはっきりさせます。</p>
+            </article>
+            <article class="preview-card">
+              <h3>苦手カテゴリ分析</h3>
+              <p>著作権、商標、特許、意匠のどこで落としているかを見て、次にやることを決めやすくします。</p>
+            </article>
+            <article class="preview-card">
+              <h3>直前14日モード</h3>
+              <p>試験2週間前に入ったら、仕上げ用の流れへ切り替えて迷いを減らします。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head-row">
+            <div>
+              <p class="section-kicker">使い方</p>
+              <h2>プレミアム版は、直前期の順番を整えるために使います</h2>
+            </div>
+            <div class="cta-actions">
+              <button id="purchase-flow-button" class="button button-secondary" type="button">使い始めの流れを見る</button>
+              <button id="device-check-button" class="button button-secondary" type="button">利用環境を確認する</button>
+            </div>
+          </div>
+          <div class="path-grid journey-grid">
+            <article>
               <span class="step-index">01</span>
-              <h3>無料版で相性を確認</h3>
-              <p>まずは 50問の無料版で、出題形式と解説の雰囲気が自分に合うかを確かめます。</p>
+              <h3>無料版で使いやすさを確認</h3>
+              <p>まずは出題形式と解説が自分に合うかを確かめます。</p>
             </article>
-            <article class="flow-step">
+            <article>
               <span class="step-index">02</span>
-              <h3>購入後に機能が使えるようになる</h3>
-              <p>購入後は、プレミアム版の対象機能をそのまま使い始められます。</p>
+              <h3>プレミアム版で苦手を絞る</h3>
+              <p>間違えた問題とカテゴリ分析で、重点的に復習する範囲を決めます。</p>
             </article>
-            <article class="flow-step">
+            <article>
               <span class="step-index">03</span>
-              <h3>苦手復習と優先キューを開始</h3>
-              <p>間違えた問題だけ復習、要復習キュー、カテゴリ別学習が使えるようになり、復習の順番が自動で回り始めます。</p>
-            </article>
-            <article class="flow-step">
-              <span class="step-index">04</span>
-              <h3>試験2週間前は直前14日モードへ</h3>
-              <p>今日のおすすめと学習プランを見ながら、最後の 14 日を仕上げ専用の流れで回します。</p>
+              <h3>直前14日で仕上げる</h3>
+              <p>試験直前はおすすめ問題と仕上げの流れに沿って回します。</p>
             </article>
           </div>
           <div id="premium-flow-message" class="premium-inline-note hidden"></div>
           <div id="premium-device-message" class="premium-inline-note hidden"></div>
         </section>
 
-        <section class="panel path-panel">
-          <p class="section-kicker">直前1か月の使い方</p>
-          <h2>プレミアム版は、学習の順番を自動で決めるためのものです。</h2>
-          <div class="path-grid">
-            <article>
-              <span class="step-index">01</span>
-              <h3>最初の数日で無料版を試す</h3>
-              <p>出題形式と解説の相性を確認し、著作権・商標・特許・意匠の感触をつかみます。</p>
-            </article>
-            <article>
-              <span class="step-index">02</span>
-              <h3>プレミアム版で苦手復習を回す</h3>
-              <p>間違えた問題だけ復習、要復習キュー、カテゴリ別学習で苦手を潰します。</p>
-            </article>
-            <article>
-              <span class="step-index">03</span>
-              <h3>試験2週間前は直前14日モードへ</h3>
-              <p>今日のおすすめと学習プランを使って、迷わず仕上げに入ります。</p>
-            </article>
-            <article>
-              <span class="step-index">04</span>
-              <h3>本番前は苦手だけを再確認</h3>
-              <p>苦手カテゴリ分析と復習キューで、最後まで落としたくない論点だけを確認します。</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="panel">
-          <p class="section-kicker">解放される画面</p>
-          <h2>プレミアム版で見えるようになるもの</h2>
-          <div class="feature-preview-grid">
-            <article class="preview-card">
-              <h3>苦手カテゴリ分析</h3>
-              <p>著作権・商標・特許・意匠のどこで落としているかを見て、次に解くカテゴリを決めやすくします。</p>
-            </article>
-            <article class="preview-card">
-              <h3>優先復習キュー</h3>
-              <p>間違えた問題と要復習をまとめて、自分専用の復習セットとしてそのまま回せます。</p>
-            </article>
-            <article class="preview-card">
-              <h3>直前14日モード</h3>
-              <p>試験日までの残り日数を意識しながら、直前期に解くべき問題の順番を絞り込めます。</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section-grid">
-          <article class="panel">
-            <p class="section-kicker">向いている人</p>
-            <h2>こういう人に3級プレミアム版が合います</h2>
-            <ul class="check-list">
-              <li>無料版を触って、解き心地は悪くないと感じた</li>
-              <li>試験1か月前で、復習の優先順位を決めたい</li>
-              <li>苦手だけを何度も回したい</li>
-              <li>毎回どの問題から解くか迷いたくない</li>
-            </ul>
-          </article>
-
-            <article class="panel muted-panel coming-soon-panel" aria-disabled="true">
-              <p class="section-kicker">補足</p>
-              <span class="status-chip status-chip-muted">準備中</span>
-              <h2>2級向けコンテンツは準備中です</h2>
-              <p class="muted-copy">
-                まずは3級の学習体験をしっかり整えることを優先しています。
-                2級向けの内容は、案内を始めるタイミングであらためてお知らせします。
-              </p>
-              <p class="muted-copy">現時点では申し込みや選択はできません。</p>
-          </article>
-        </section>
-
         <section class="panel premium-faq-panel">
-          <p class="section-kicker">FAQ</p>
-          <h2>よくある質問</h2>
+          <p class="section-kicker">よくある質問</p>
+          <h2>プレミアム版を見る前によく聞かれること</h2>
           <div class="faq-list">
             <article class="faq-item">
               <button class="faq-toggle" type="button" data-faq-target="faq-1" aria-expanded="false">
-                無料版だけでも学習は続けられますか？
+                無料版だけでも使い続けられますか？
               </button>
               <div id="faq-1" class="faq-answer hidden">
-                <p>続けられます。まずは無料版で出題形式や解説の相性を確認し、必要性を感じたらプレミアム版へ進む前提です。</p>
+                <p>使い続けられます。まずは無料版で使いやすさを見て、必要性を感じた時だけプレミアム版へ進む流れです。</p>
               </div>
             </article>
             <article class="faq-item">
               <button class="faq-toggle" type="button" data-faq-target="faq-2" aria-expanded="false">
-                3級プレミアム版の価値は問題数だけですか？
+                どのタイミングでプレミアム版を見るとよいですか？
               </button>
               <div id="faq-2" class="faq-answer hidden">
-                <p>いいえ。中心の価値は、苦手復習、自動おすすめ、直前14日モードで仕上げの順番まで迷わず決められることです。</p>
+                <p>試験1か月前に入り、苦手だけを繰り返したい、順番を迷わず決めたいと感じた頃が目安です。</p>
               </div>
             </article>
             <article class="faq-item">
               <button class="faq-toggle" type="button" data-faq-target="faq-3" aria-expanded="false">
-                2級向けは今すぐ買えますか？
+                購入前に何を確認できますか？
               </button>
               <div id="faq-3" class="faq-answer hidden">
-                <p>まだ準備中です。今は3級向けの内容に集中しているので、2級向けは案内を始めるタイミングで別途お知らせします。</p>
-              </div>
-            </article>
-            <article class="faq-item">
-              <button class="faq-toggle" type="button" data-faq-target="faq-4" aria-expanded="false">
-                実際の購入はどこで行いますか？
-              </button>
-              <div id="faq-4" class="faq-answer hidden">
-                <p>このページで内容を確認したあと、購入前チェックへ進むと、そのまま購入手続きへ進めます。</p>
-              </div>
-            </article>
-            <article class="faq-item">
-              <button class="faq-toggle" type="button" data-faq-target="faq-5" aria-expanded="false">
-                返金やキャンセルの扱いはどうなりますか？
-              </button>
-              <div id="faq-5" class="faq-answer hidden">
-                <p>返金やキャンセルの条件は、特定商取引法に基づく表記に記載しています。ご不明点があればお問い合わせフォームから連絡できます。</p>
-              </div>
-            </article>
-            <article class="faq-item">
-              <button class="faq-toggle" type="button" data-faq-target="faq-6" aria-expanded="false">
-                スマートフォン以外でも使えますか？
-              </button>
-              <div id="faq-6" class="faq-answer hidden">
-                <p>iPhone / Android を中心に使いやすく整えています。公開サイトと無料版は PC ブラウザでも利用できます。</p>
-              </div>
-            </article>
-            <article class="faq-item">
-              <button class="faq-toggle" type="button" data-faq-target="faq-7" aria-expanded="false">
-                オフラインでも使えますか？
-              </button>
-              <div id="faq-7" class="faq-answer hidden">
-                <p>このサービスはオンライン利用を前提にしています。スマートフォンやPCのブラウザからそのまま使えます。</p>
+                <p>価格、使える機能、ログインの流れ、購入後の再開方法は購入前の確認ページでまとめて確認できます。</p>
               </div>
             </article>
           </div>
@@ -311,14 +214,12 @@
         <section class="cta-band">
           <div>
             <p class="section-kicker">次の一歩</p>
-            <h2>無料版で相性を確認したら、次は購入前チェックだけ見れば進めます。</h2>
-            <p>
-              いきなり決済に進むのではなく、無料版で相性を確認し、必要な機能と価格を見てから購入へ進む流れにしています。
-            </p>
+            <h2>無料版を試したあとなら、購入前の確認まで進めば十分です。</h2>
+            <p>手続き前に見ておきたい情報は、購入前の確認ページにまとめています。迷っている段階なら、先に無料版へ戻っても大丈夫です。</p>
           </div>
           <div class="cta-actions">
-            <a class="button button-primary" href="/app/">無料版を試す</a>
-            <a class="button button-secondary" href="/premium/ready/">価格と流れを確認する</a>
+            <a class="button button-secondary" href="/app/">無料版へ戻る</a>
+            <a class="button button-primary" href="/premium/ready/">購入前の確認へ進む</a>
           </div>
         </section>
       </main>

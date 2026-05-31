@@ -20,11 +20,11 @@
         target.classList.remove("hidden");
     }
     fitCheckButton?.addEventListener("click", () => {
-        showMessage(fitMessage, "無料版を試したあとに『苦手だけを何度も回したい』『試験1か月前で順番を決めたい』と感じたら、3級プレミアム版との相性が高めです。");
+        showMessage(fitMessage, "無料版を試したあとに『苦手だけを何度も回したい』『試験1か月前で順番を決めたい』と感じたら、3級プレミアム版が役立ちやすいです。");
         fitMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
     purchaseCheckButton?.addEventListener("click", () => {
-        showMessage(purchaseMessage, `購入前は、価格 (${getPremiumPriceText()}), 解放される機能, 対応端末, 返金や問い合わせの案内を確認してから進めます。購入前チェックページへ移動します。`);
+        showMessage(purchaseMessage, `購入前の確認ページへ移動します。価格 (${getPremiumPriceText()}), 使える機能, ログインの流れを確認してから、そのまま手続きへ進めます。`);
         purchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
         window.setTimeout(() => {
             window.location.href = getPremiumPurchasePath();

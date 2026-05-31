@@ -31,7 +31,7 @@
   fitCheckButton?.addEventListener("click", () => {
     showMessage(
       fitMessage,
-      "無料版を触って『苦手だけを回したい』『直前1か月の順番を決めたい』と感じた人は、3級プレミアム版との相性が高めです。",
+      "無料版を触って『苦手だけを回したい』『直前1か月の順番を決めたい』と感じた人は、3級プレミアム版が役立ちやすいです。",
     );
     fitMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
@@ -39,7 +39,7 @@
   purchaseReadyButton?.addEventListener("click", () => {
     showMessage(
       purchaseMessage,
-      `購入前チェックページへ移動します。価格や流れを確認したあと、そのまま 3級プレミアム版 (${getPremiumPriceText()}) の購入手続きへ進めます。`,
+      `購入前の確認ページへ移動します。価格や流れを確認したあと、そのまま 3級プレミアム版 (${getPremiumPriceText()}) の購入手続きへ進めます。`,
     );
     purchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     window.setTimeout(() => {
@@ -50,7 +50,7 @@
   purchaseFlowButton?.addEventListener("click", () => {
     showMessage(
       flowMessage,
-      "おすすめの流れは『無料版で相性確認 -> プレミアム版を使い始める -> 苦手復習を回す -> 試験2週間前に直前14日モードへ移行』です。購入直後に全部を見るのではなく、まず苦手復習から使い始める流れです。",
+      "おすすめの流れは『無料版で使いやすさ確認 -> プレミアム版を使い始める -> 苦手復習を回す -> 試験2週間前に直前14日モードへ移行』です。購入直後に全部を見るのではなく、まず苦手復習から使い始める流れです。",
     );
     flowMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
@@ -58,7 +58,7 @@
   deviceCheckButton?.addEventListener("click", () => {
     showMessage(
       deviceMessage,
-      "iPhone / Android を中心に、購入前の確認や学習画面は PC ブラウザからも利用できます。インターネット接続がある状態で使う前提です。",
+      "購入前の確認や学習ページは PC ブラウザからも利用できます。購入後は同じアカウントで続きから学習を再開する流れです。",
     );
     deviceMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   });

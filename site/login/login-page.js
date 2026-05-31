@@ -28,13 +28,13 @@
     let recoveryModeActive = false;
     function formatReturnToLabel(path) {
         if (path.startsWith("/premium/ready/")) {
-            return "購入前チェック";
+            return "購入前の確認";
         }
         if (path.startsWith("/premium/")) {
-            return "プレミアム版の案内";
+            return "プレミアム版について";
         }
         if (path.startsWith("/app/")) {
-            return "学習画面";
+            return "学習ページ";
         }
         if (path === "/" || path === "") {
             return "トップページ";
@@ -270,8 +270,8 @@
             if (statusCopy) {
                 statusCopy.textContent =
                     authClient?.getMode?.() === "supabase"
-                        ? "ログインすると、購入状態の確認やプレミアム版の利用再開をこのまま続けられます。"
-                        : "無料版はそのまま使えます。購入後にプレミアム版として続けるときは、ここから状態を確認して次の画面へ進めます。";
+                        ? "ログインすると、購入状況の確認やプレミアム版の利用再開をこのまま続けられます。"
+                        : "無料版はそのまま使えます。購入後にプレミアム版として続けるときは、ここから確認して次の画面へ進めます。";
             }
             logoutButton?.classList.add("hidden");
             return;
@@ -284,8 +284,8 @@
                 status.active_plan === "premium"
                     ? "プレミアム版を利用できる状態です。このまま元の画面へ戻れば、追加問題とプレミアム機能をそのまま使えます。"
                     : status.purchase_state === "in_checkout"
-                        ? "購入手続きの途中として記録されています。購入前チェックへ戻ると、そのまま続きから確認できます。"
-                        : "ログイン済みです。価格や機能を確認したら、そのまま購入前チェックへ進めます。";
+                        ? "購入手続きの途中として記録されています。購入前の確認ページへ戻ると、そのまま続きから確認できます。"
+                        : "ログイン済みです。価格や機能を確認したら、そのまま購入前の確認ページへ進めます。";
         }
         logoutButton?.classList.remove("hidden");
     }
@@ -310,7 +310,7 @@
                     currentStatus.textContent = "再設定手続き中";
                 }
                 if (statusCopy) {
-                    statusCopy.textContent = "新しいパスワードを設定すると、そのまま購入状態の確認や学習の続きへ進めます。";
+                    statusCopy.textContent = "新しいパスワードを設定すると、そのまま購入状況の確認や学習の続きへ進めます。";
                 }
                 showInfo("新しいパスワードを入力してください。設定後はそのまま元の画面へ戻れます。");
                 return;
@@ -321,13 +321,13 @@
                 showInfo("ログインの準備がまだ完了していません。時間をおいてもう一度お試しください。");
             }
             else if (String(status.source || "").startsWith("secure_api_") || status.source === "secure_api_unavailable") {
-                showInfo("ログインは完了しています。購入状態の確認だけ一時的に遅れているため、いったん無料版として表示しています。");
+                showInfo("ログインは完了しています。購入状況の確認だけ一時的に遅れているため、いったん無料版として表示しています。");
             }
             renderStatus(status);
         }
         catch (error) {
             console.warn("login page status load failed", error);
-            showInfo("購入状態の確認に失敗しました。時間をおいてもう一度お試しください。");
+            showInfo("購入状況の確認に失敗しました。時間をおいてもう一度お試しください。");
             renderStatus({
                 signed_in: false,
                 active_plan: "free",
