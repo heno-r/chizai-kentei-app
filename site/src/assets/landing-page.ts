@@ -5,6 +5,38 @@
   const fitMessage = document.getElementById("lp-fit-message") as HTMLElement | null;
   const purchaseMessage = document.getElementById("lp-purchase-message") as HTMLElement | null;
 
+  function redirectRecoveryVisitorsToLogin(): void {
+    if (typeof window === "undefined" || window.location.pathname === "/login/") {
+      return;
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    const type = searchParams.get("type") || hashParams.get("type") || "";
+    const hasRecoveryHint = Boolean(
+      type === "recovery" ||
+      searchParams.get("code") ||
+      searchParams.get("token_hash") ||
+      hashParams.get("access_token") ||
+      hashParams.get("refresh_token"),
+    );
+
+    if (!hasRecoveryHint) {
+      return;
+    }
+
+    const loginUrl = new URL("/login/", window.location.origin);
+    searchParams.forEach((value, key) => {
+      loginUrl.searchParams.set(key, value);
+    });
+    if (!loginUrl.searchParams.has("returnTo")) {
+      loginUrl.searchParams.set("returnTo", runtimeConfig.appEntryPath || "/app/");
+    }
+
+    window.location.replace(`${loginUrl.pathname}${loginUrl.search}${window.location.hash}`);
+  }
+
   function getPremiumGuidePath(): string {
     return runtimeConfig.premiumGuidePath || "/premium/";
   }
@@ -32,6 +64,8 @@
     target.textContent = text;
     target.classList.remove("hidden");
   }
+
+  redirectRecoveryVisitorsToLogin();
 
   fitCheckButton?.addEventListener("click", () => {
     showMessage(

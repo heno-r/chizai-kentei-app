@@ -4,6 +4,31 @@
     const purchaseCheckButton = document.getElementById("lp-purchase-check-button");
     const fitMessage = document.getElementById("lp-fit-message");
     const purchaseMessage = document.getElementById("lp-purchase-message");
+    function redirectRecoveryVisitorsToLogin() {
+        if (typeof window === "undefined" || window.location.pathname === "/login/") {
+            return;
+        }
+        const searchParams = new URLSearchParams(window.location.search);
+        const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+        const hashParams = new URLSearchParams(hash);
+        const type = searchParams.get("type") || hashParams.get("type") || "";
+        const hasRecoveryHint = Boolean(type === "recovery" ||
+            searchParams.get("code") ||
+            searchParams.get("token_hash") ||
+            hashParams.get("access_token") ||
+            hashParams.get("refresh_token"));
+        if (!hasRecoveryHint) {
+            return;
+        }
+        const loginUrl = new URL("/login/", window.location.origin);
+        searchParams.forEach((value, key) => {
+            loginUrl.searchParams.set(key, value);
+        });
+        if (!loginUrl.searchParams.has("returnTo")) {
+            loginUrl.searchParams.set("returnTo", runtimeConfig.appEntryPath || "/app/");
+        }
+        window.location.replace(`${loginUrl.pathname}${loginUrl.search}${window.location.hash}`);
+    }
     function getPremiumGuidePath() {
         return runtimeConfig.premiumGuidePath || "/premium/";
     }
@@ -28,6 +53,7 @@
         target.textContent = text;
         target.classList.remove("hidden");
     }
+    redirectRecoveryVisitorsToLogin();
     fitCheckButton?.addEventListener("click", () => {
         showMessage(fitMessage, "無料診断と無料版を試したあとに『苦手だけを何度も回したい』『試験1か月前で順番を決めたい』と感じたら、3級プレミアム版が役立ちやすいです。");
         fitMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
