@@ -348,7 +348,7 @@
         setAuthButtonsDisabled(true);
         setButtonBusy(passwordResetButton, true, "送信中...");
         try {
-            await authClient.requestPasswordReset(email);
+            await authClient.requestPasswordReset(email, getReturnToPath());
             hideInfo();
             showInlineMessage(loginFormMessage, "再設定メールを送信しました。メールの案内に沿って新しいパスワードを設定してください。");
         }

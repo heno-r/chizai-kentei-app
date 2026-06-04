@@ -420,12 +420,54 @@
     return result;
   }
 
-  async function requestPasswordReset(email: string): Promise<any> {
+  function getRecoveryHint(): {
+    isRecoveryLink: boolean;
+    type: string;
+    code: string;
+    tokenHash: string;
+    accessToken: string;
+    refreshToken: string;
+  } {
+    if (typeof window === "undefined") {
+      return {
+        isRecoveryLink: false,
+        type: "",
+        code: "",
+        tokenHash: "",
+        accessToken: "",
+        refreshToken: "",
+      };
+    }
+
+    const searchParams = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    const type = searchParams.get("type") || hashParams.get("type") || "";
+    const code = searchParams.get("code") || "";
+    const tokenHash = searchParams.get("token_hash") || "";
+    const accessToken = hashParams.get("access_token") || searchParams.get("access_token") || "";
+    const refreshToken = hashParams.get("refresh_token") || searchParams.get("refresh_token") || "";
+    const isRecoveryLink = Boolean(
+      type === "recovery" || code || tokenHash || accessToken || refreshToken,
+    );
+
+    return {
+      isRecoveryLink,
+      type,
+      code,
+      tokenHash,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async function requestPasswordReset(email: string, returnToPath?: string): Promise<any> {
     if (authMode !== "supabase") {
       throw new Error("password reset is only available in supabase mode");
     }
     return postPublicAuth("/api/public/auth/password-reset", {
       email,
+      return_to: returnToPath || "/app/",
     });
   }
 
@@ -450,8 +492,8 @@
     if (typeof window === "undefined") {
       return false;
     }
-    const recoveryHint = `${window.location.search}${window.location.hash}`;
-    if (!recoveryHint.includes("type=recovery") && !recoveryHint.includes("access_token=")) {
+    const recoveryHint = getRecoveryHint();
+    if (!recoveryHint.isRecoveryLink) {
       return false;
     }
 
@@ -459,6 +501,53 @@
     if (!client) {
       return false;
     }
+
+    async function hasActiveSession(): Promise<boolean> {
+      const {
+        data: { session },
+      } = await client.auth.getSession();
+      return Boolean(session?.access_token);
+    }
+
+    if (await hasActiveSession()) {
+      return true;
+    }
+
+    if (recoveryHint.code) {
+      try {
+        const { error } = await client.auth.exchangeCodeForSession(recoveryHint.code);
+        if (error) {
+          console.warn("password recovery code exchange failed", error);
+        }
+      } catch (error) {
+        console.warn("password recovery code exchange threw", error);
+      }
+      if (await hasActiveSession()) {
+        return true;
+      }
+    }
+
+    if (recoveryHint.tokenHash && recoveryHint.type === "recovery") {
+      try {
+        const { error } = await client.auth.verifyOtp({
+          token_hash: recoveryHint.tokenHash,
+          type: "recovery",
+        });
+        if (error) {
+          console.warn("password recovery token verification failed", error);
+        }
+      } catch (error) {
+        console.warn("password recovery token verification threw", error);
+      }
+      if (await hasActiveSession()) {
+        return true;
+      }
+    }
+
+    if (recoveryHint.accessToken || recoveryHint.refreshToken) {
+      await new Promise((resolve) => window.setTimeout(resolve, 50));
+    }
+
     const {
       data: { session },
     } = await client.auth.getSession();

@@ -137,6 +137,7 @@ interface ContactRequestPayload {
 interface AuthCredentialPayload {
   email?: string;
   password?: string;
+  return_to?: string;
 }
 
 interface AuthAttemptBucket {
@@ -338,6 +339,7 @@ export default {
         const startedAt = Date.now();
         const payload = (await request.json()) as AuthCredentialPayload;
         const email = normalizeEmail(String(payload?.email || ""));
+        const returnToPath = String(payload?.return_to || "");
 
         if (!isValidEmail(email)) {
           await ensureMinimumResponseDuration(startedAt);
@@ -350,7 +352,7 @@ export default {
           return limiterResponse;
         }
 
-        const redirectTo = buildLoginReturnUrl(request, env);
+        const redirectTo = buildLoginReturnUrl(request, env, returnToPath);
         const supabaseResponse = await postSupabaseAuthJson(env, "/auth/v1/recover", {
           email,
           redirect_to: redirectTo,
@@ -1098,10 +1100,30 @@ function buildSupabaseUserPayload(payload: Record<string, unknown>): Record<stri
   return user || null;
 }
 
-function buildLoginReturnUrl(request: Request, env: Env): string {
+function buildLoginReturnUrl(request: Request, env: Env, returnToPath?: string): string {
   const siteBase = resolvePublicSiteBaseUrl(request, env);
   const loginPath = normalizePath("/login/");
-  return `${siteBase}${loginPath}`;
+  const normalizedReturnTo = normalizeReturnToPath(returnToPath);
+  if (!normalizedReturnTo) {
+    return `${siteBase}${loginPath}`;
+  }
+  const url = new URL(`${siteBase}${loginPath}`);
+  url.searchParams.set("returnTo", normalizedReturnTo);
+  return url.toString();
+}
+
+function normalizeReturnToPath(path?: string): string | null {
+  if (!path) {
+    return null;
+  }
+  const trimmed = path.trim();
+  if (!trimmed.startsWith("/")) {
+    return null;
+  }
+  if (trimmed.startsWith("//")) {
+    return null;
+  }
+  return trimmed;
 }
 
 function isExistingAccountSignupResponse(message: string): boolean {
