@@ -46,8 +46,8 @@
           <section class="plan-panel">
             <div class="picker-header">
               <div>
-                <span class="summary-label">次のステップ</span>
-                <h3 id="account-status-title">確認中</h3>
+                <span class="summary-label">次にやること</span>
+                <h3 id="account-status-title">まずは無料版を試す</h3>
               </div>
               <div class="resume-actions">
                 <a id="account-login-link" class="secondary-button" href="/login/">ログインする</a>
@@ -55,12 +55,30 @@
               </div>
             </div>
             <p id="account-status-copy" class="picker-copy">
-              無料版はこのまま使えます。購入済みの状態で続けたいときは、ログインして購入状態を確認できます。
+              無料版で使いやすさを確認したあとに、必要ならログインして次へ進めます。
             </p>
             <div class="resume-actions">
-              <a class="ghost-button" href="/premium/">プレミアム版の案内を見る</a>
-              <a id="account-upgrade-link" class="primary-button" href="/premium/ready/">このまま購入前チェックへ進む</a>
+              <a class="ghost-button" href="/premium/">プレミアム版の内容を見る</a>
+              <a id="account-upgrade-link" class="primary-button" href="/premium/ready/">ログインして次へ進む</a>
             </div>
+          </section>
+
+          <section id="purchase-followup-panel" class="plan-panel hidden">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">購入後の案内</span>
+                <h3 id="purchase-followup-title">プレミアム版が使える状態になりました</h3>
+              </div>
+              <p id="purchase-followup-copy" class="picker-copy">
+                このまま学習を再開できます。最初は、おすすめ、カテゴリ別学習、直前14日モードの順で試すと使い分けがつかみやすくなります。
+              </p>
+            </div>
+            <div class="resume-actions">
+              <button id="purchase-followup-primary" class="primary-button" type="button">今日のおすすめから始める</button>
+              <button id="purchase-followup-secondary" class="ghost-button" type="button">カテゴリ別学習で始める</button>
+              <button id="purchase-followup-tertiary" class="ghost-button" type="button">直前14日モードで始める</button>
+            </div>
+            <div id="purchase-followup-tips" class="stats-grid"></div>
           </section>
 
           <section class="plan-panel">
@@ -93,6 +111,17 @@
             </div>
           </div>
 
+          <section class="plan-panel">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">最近の学習状況</span>
+                <h3>続け方の目安をここで確認する</h3>
+              </div>
+              <p class="picker-copy">直近の学習量、正答率の変化、最後に学習したタイミングをまとめます。</p>
+            </div>
+            <div id="history-insights" class="stats-grid"></div>
+          </section>
+
           <div class="mode-grid mode-grid-wide">
             <button class="mode-card is-active" data-mode="sequential" data-feature="sequential_mode">
               <span class="plan-pill">無料版</span>
@@ -115,7 +144,7 @@
             <button class="mode-card" data-mode="final14" data-feature="final14_mode">
               <span class="plan-pill">プレミアム版</span>
               <span class="mode-title">直前14日モード</span>
-              <span class="mode-desc">試験1か月前の仕上げを意識して、苦手優先で回す</span>
+              <span class="mode-desc">まずは5問だけ。間違えやすい論点を優先して回す</span>
               <span class="mode-lock-note"></span>
             </button>
             <button class="mode-card" data-mode="flagged" data-feature="flagged_mode">
@@ -129,15 +158,32 @@
           <section id="premium-upsell-panel" class="premium-upsell-panel">
             <div>
               <span class="summary-label">プレミアム版</span>
-              <h3 id="premium-upsell-title">無料版のあとにやることを、ここで1つに絞る</h3>
+              <h3 id="premium-upsell-title">無料版のあとに進む順番を、ここで確認できます</h3>
               <p id="premium-upsell-copy" class="picker-copy">
-                無料版で相性を確認したあとに、ログイン、購入、プレミアム解放までを順番に確認できます。
+                無料版で使いやすさを確認したあとに、ログイン、購入前の確認、購入の順で進めます。
               </p>
             </div>
             <div class="premium-upsell-actions">
               <strong id="premium-price-note" class="premium-price-note">3級プレミアム版 1,200円 / 追加月額料金なし</strong>
               <a id="premium-guide-link" class="ghost-button" href="/premium/">内容だけ先に見る</a>
-              <a id="premium-ready-link" class="primary-button" href="/premium/ready/">購入前チェックへ進む</a>
+              <a id="premium-ready-link" class="primary-button" href="/premium/ready/">次へ進む</a>
+            </div>
+          </section>
+
+          <section id="premium-value-panel" class="plan-panel">
+            <div class="picker-header">
+              <div>
+                <span class="summary-label">プレミアム版で増えること</span>
+                <h3 id="premium-value-title">無料版のあとに増える価値を、学習の悩みごとに整理しました</h3>
+              </div>
+              <p id="premium-value-copy" class="picker-copy">
+                問題数が増えるだけでなく、苦手の見直し方と直前期の進め方が変わります。
+              </p>
+            </div>
+            <div id="premium-value-grid" class="stats-grid"></div>
+            <div class="resume-actions">
+              <a id="premium-value-guide-link" class="ghost-button" href="/premium/">内容を確認する</a>
+              <a id="premium-value-cta" class="primary-button" href="/premium/ready/">次へ進む</a>
             </div>
           </section>
 
@@ -187,9 +233,9 @@
             <div class="picker-header">
               <div>
                 <span class="summary-label">直前14日プラン</span>
-                <h3>苦手カテゴリを毎日少しずつ回す</h3>
+                <h3>まずは今日の分だけ、5問ずつ回す</h3>
               </div>
-              <p class="picker-copy">学習履歴をもとに、優先度の高い順で14日分の目安を出します。</p>
+              <p class="picker-copy">学習履歴をもとに、14日分の目安を出します。全部を埋めなくても、今日の分から始めれば大丈夫です。</p>
             </div>
             <div id="study-plan" class="plan-grid"></div>
           </section>
@@ -200,6 +246,7 @@
               <h3 id="recommend-title">まずは順番に学習</h3>
               <p id="recommend-copy" class="picker-copy">履歴が増えると、ここに次に解くべきモードを提案します。</p>
             </div>
+            <div id="recommend-details" class="stats-grid recommend-details"></div>
             <button id="recommend-button" class="primary-button">おすすめで始める</button>
           </section>
 
@@ -210,7 +257,7 @@
                   <span class="summary-label">カテゴリ別成績</span>
                   <h3>どの分野が苦手かを把握する</h3>
                 </div>
-                <p class="picker-copy">履歴が増えるほど、次に解くべきカテゴリがはっきりします。</p>
+                <p id="category-stats-copy" class="picker-copy">弱い順に並べて、どこから見直すとよいかを分かりやすく表示します。</p>
               </div>
               <div id="category-stats" class="stats-grid"></div>
             </section>

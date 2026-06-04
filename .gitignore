@@ -20,7 +20,9 @@ secure_api_worker/.wrangler/
 # Local environment / secrets
 secure_api_worker/.dev.vars
 secure_api_worker/wrangler.toml
+site/config/runtime-config.*.local.json
 review_tool/contact_viewer_config.local.json
+review_tool/daily_operations_report.local.txt
 
 # Local databases / internal data
 content/

@@ -161,7 +161,29 @@ Sandbox のままで次を通します。
 - 必要なら準拠法と管轄裁判所
 - 問い合わせ確認の運用頻度
 
+## 12.5. 本番値を repo 本体へ直書きしたくないとき
+
+`supportEmail` や Stripe の公開値は、次のローカル上書きファイルでも差し込めます。
+
+- [site/config/runtime-config.production.local.example.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\config\runtime-config.production.local.example.json)
+
+使い方:
+
+1. `site/config/runtime-config.production.local.example.json` をコピー
+2. `site/config/runtime-config.production.local.json` を作る
+3. `stripePublishableKey`, `stripePriceId`, `supportEmail` を入れる
+4. `render_runtime_config.ps1` または `prepare_pages_dev_release.ps1` を実行する
+
+`runtime-config.production.local.json` は `.gitignore` 対象です。
+
 ## 13. 本番切替の直前チェック
+
+先にこの確認を回すと、不足設定をまとめて拾えます。
+
+```powershell
+cd C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ
+powershell -ExecutionPolicy Bypass -File .\scripts\validate_staging_setup.ps1 -EnvironmentName production
+```
 
 - Worker の `PUBLIC_SITE_URL` は `pages.dev`
 - Supabase の Redirect URL は `pages.dev`

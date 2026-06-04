@@ -1,4 +1,12 @@
-type PurchaseState = "not_started" | "in_checkout" | "paid_pending_entitlement" | "entitled";
+type PurchaseState =
+  | "not_started"
+  | "in_checkout"
+  | "paid_pending_entitlement"
+  | "entitled"
+  | "refunded"
+  | "cancelled"
+  | "expired"
+  | "revoked";
 type ActivePlan = "free" | "premium";
 
 interface Env {
@@ -148,6 +156,8 @@ interface AuthRateLimitPolicy {
   maxAttemptsPerIpEmail: number;
 }
 
+type ContactMessageStatus = "new" | "in_progress" | "done";
+
 const DEFAULT_UNLOCKED_FEATURES = [
   "category_mode",
   "retry_wrong",
@@ -188,6 +198,8 @@ const PASSWORD_RESET_RATE_LIMIT_POLICY: AuthRateLimitPolicy = {
   maxAttemptsPerEmail: 4,
   maxAttemptsPerIpEmail: 3,
 };
+
+const ALLOWED_CONTACT_STATUSES = new Set<ContactMessageStatus>(["new", "in_progress", "done"]);
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -368,8 +380,34 @@ export default {
 
         const requestedLimit = Number.parseInt(url.searchParams.get("limit") || "50", 10);
         const limit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(200, requestedLimit)) : 50;
-        const result = await env.LICENSE_DB.prepare(
-          `
+        const statusParam = String(url.searchParams.get("status") || "").trim();
+        const searchText = String(url.searchParams.get("q") || "").trim();
+        const messageId = String(url.searchParams.get("id") || "").trim();
+        const sqlParams: Array<string | number> = [];
+        const whereClauses: string[] = [];
+
+        if (messageId) {
+          whereClauses.push("id = ?");
+          sqlParams.push(messageId);
+        }
+
+        if (statusParam) {
+          if (!ALLOWED_CONTACT_STATUSES.has(statusParam as ContactMessageStatus)) {
+            return jsonResponse(request, { error: "status must be one of new, in_progress, done" }, 400);
+          }
+          whereClauses.push("status = ?");
+          sqlParams.push(statusParam);
+        }
+
+        if (searchText) {
+          const likeValue = `%${escapeSqlLikePattern(searchText)}%`;
+          whereClauses.push(
+            "(message LIKE ? ESCAPE '\\' OR name LIKE ? ESCAPE '\\' OR reply_email LIKE ? ESCAPE '\\' OR source_page LIKE ? ESCAPE '\\')",
+          );
+          sqlParams.push(likeValue, likeValue, likeValue, likeValue);
+        }
+
+        const query = `
           SELECT
             id,
             name,
@@ -381,17 +419,26 @@ export default {
             created_at,
             updated_at
           FROM contact_messages
+          ${whereClauses.length > 0 ? `WHERE ${whereClauses.join(" AND ")}` : ""}
           ORDER BY created_at DESC
           LIMIT ?
-          `,
-        )
-          .bind(limit)
+          `;
+        sqlParams.push(limit);
+
+        const result = await env.LICENSE_DB.prepare(query)
+          .bind(...sqlParams)
           .all<Record<string, unknown>>();
 
         return jsonResponse(request, {
           ok: true,
           messages: result.results ?? [],
           count: (result.results ?? []).length,
+          filters: {
+            limit,
+            status: statusParam || null,
+            q: searchText || null,
+            id: messageId || null,
+          },
         });
       }
 
@@ -404,12 +451,11 @@ export default {
         const payload = (await request.json()) as Record<string, unknown>;
         const messageId = String(payload?.id || "").trim();
         const status = String(payload?.status || "").trim();
-        const allowedStatuses = new Set(["new", "in_progress", "done"]);
 
         if (!messageId) {
           return jsonResponse(request, { error: "id is required" }, 400);
         }
-        if (!allowedStatuses.has(status)) {
+        if (!ALLOWED_CONTACT_STATUSES.has(status as ContactMessageStatus)) {
           return jsonResponse(request, { error: "status must be one of new, in_progress, done" }, 400);
         }
 
@@ -814,6 +860,10 @@ function isValidEmail(value: string): boolean {
 
 function normalizeEmail(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function escapeSqlLikePattern(value: string): string {
+  return value.replace(/[\\%_]/g, "\\$&");
 }
 
 function validatePasswordForSignup(password: string): string | null {
@@ -1261,7 +1311,7 @@ async function buildLicenseStatus(
     `
     SELECT plan_code, product_code, scope_type, scope_id, status, granted_at, expires_at
     FROM entitlements
-    WHERE user_id = ? AND status = 'active'
+    WHERE user_id = ?
     ORDER BY updated_at DESC
     `,
   )
@@ -1281,9 +1331,21 @@ async function buildLicenseStatus(
     .first<{ order_status?: string }>();
 
   const entitlements = entitlementsResult.results || [];
-  const hasPremium = entitlements.some((item: Record<string, unknown>) => item.plan_code === "premium");
+  const activeEntitlements = entitlements.filter((item: Record<string, unknown>) => item.status === "active");
+  const hasPremium = activeEntitlements.some((item: Record<string, unknown>) => item.plan_code === "premium");
+  const latestPremiumEntitlement = entitlements.find((item: Record<string, unknown>) => item.plan_code === "premium");
   const purchaseState: PurchaseState = hasPremium
     ? "entitled"
+    : latestPremiumEntitlement?.status === "expired"
+      ? "expired"
+      : latestPremiumEntitlement?.status === "revoked"
+        ? order?.order_status === "refunded"
+          ? "refunded"
+          : "revoked"
+        : order?.order_status === "refunded"
+          ? "refunded"
+          : order?.order_status === "cancelled" || order?.order_status === "failed" || order?.order_status === "expired"
+            ? "cancelled"
     : order?.order_status === "pending"
       ? "in_checkout"
       : order?.order_status === "paid"
@@ -1298,7 +1360,7 @@ async function buildLicenseStatus(
       user_id: user.auth_user_id || auth.authUserId,
       display_name: user.display_name || auth.displayName || "利用者",
     },
-    entitlements,
+    entitlements: activeEntitlements,
     source: "cloudflare_d1",
   };
 }

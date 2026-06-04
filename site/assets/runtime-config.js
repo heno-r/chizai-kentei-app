@@ -11,11 +11,15 @@ window.APP_RUNTIME_CONFIG = Object.freeze({
     "premiumGuidePath":  "/premium/",
     "premiumPurchasePath":  "/premium/ready/",
     "premiumPriceText":  "3級プレミアム版 1,200円 / 追加月額料金なし",
+    "serviceName":  "しけん準備室 知財3級対策",
+    "operatorTradeName":  "しけん準備室",
+    "operatorName":  "佐々木隆司",
+    "legalEffectiveDate":  "2026/5/3",
     "purchaseEnabled":  true,
     "loginPath":  "/login/",
-    "stripePublishableKey":  "",
-    "stripePriceId":  "",
-    "supportEmail":  "support@example.com",
+    "stripePublishableKey":  "pk_live_51TSBvXRw6de21oUGZc4nY6Dgaeq5cJWrjEqQQ9QAyaMRbcWkFY8HdEp1Z7Rbs43scT6y5s9cskfGlMrxK8vsahZO002hhSFBCM",
+    "stripePriceId":  "price_1TSyuqRw6de21oUGtBa8LN5S",
+    "supportEmail":  "shikenjunbishitsu@proton.me",
     "supabaseUrl":  "https://vpvqxgdoqprhzbftfryv.supabase.co",
     "supabasePublishableKey":  "sb_publishable_u11K8oJLsuZqFgUMn3L7iw_VZTUsNo4"
 });

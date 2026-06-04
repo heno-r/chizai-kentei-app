@@ -67,8 +67,13 @@ Cloudflare Pages に載せる公開用ディレクトリです。ここには LP
   - 本番用の Pages / Worker / Supabase 向け設定
 - `site/config/runtime-config.staging.json`
   - ステージング用の Pages / Worker / Supabase 向け設定
+- `site/config/runtime-config.production.local.json`
+  - 本番の問い合わせ先や Stripe 値をローカルで上書きするときに使う
+  - ひな形: [site/config/runtime-config.production.local.example.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\config\runtime-config.production.local.example.json)
+  - `.gitignore` 対象なので repo に含めずに使う
 - `render_runtime_config.ps1`
   - 環境ごとの JSON から `assets/runtime-config.js` を生成
+  - `runtime-config.<env>.local.json` があれば自動で上書きを反映する
 
 ## API 前提の運用
 

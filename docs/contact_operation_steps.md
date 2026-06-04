@@ -8,12 +8,29 @@
 - Worker 側に `ADMIN_API_TOKEN` を設定する
 - ローカルに [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool\contact_viewer_config.local.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool\contact_viewer_config.local.json) を置く
 - `admin_token` は Worker 側と同じ値にする
+- 送信から一覧確認までをまとめて試したいときは、先に [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_roundtrip_check.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_roundtrip_check.md) を使う
 
 ## 2. 問い合わせ一覧を開く
 
 1. [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool\run_review_tool.bat](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool\run_review_tool.bat) を起動
 2. 上部の `本番問い合わせ` を押す
 3. 一覧から対象の問い合わせを選ぶ
+
+CLI で確認したいとき:
+
+```powershell
+cd C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool
+production_contact_admin_cli.bat list --limit 20
+production_contact_admin_cli.bat list --status new
+production_contact_admin_cli.bat list --contains 返金
+production_contact_admin_cli.bat show <問い合わせID>
+```
+
+補足:
+
+- `--status` と `--contains` は Worker 側で絞り込んでから返る
+- `show <問い合わせID>` と `reply-draft <問い合わせID>` は `id` 指定で直接取得する
+- `--contains` は本文、名前、返信先メールアドレス、送信元ページを対象に部分一致する
 
 確認できる項目:
 
@@ -54,6 +71,13 @@
   - [C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md) に従う
 - 個人情報の開示、訂正、削除依頼
   - `/privacy/` の案内に沿って対応する
+
+返信メモのたたき台を出したいとき:
+
+```powershell
+cd C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\review_tool
+production_contact_admin_cli.bat reply-draft <問い合わせID>
+```
 
 ## 5. 見えないときの確認先
 

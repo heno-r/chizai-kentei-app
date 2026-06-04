@@ -9,15 +9,17 @@
       content="しけん準備室 知財3級対策の特定商取引法に基づく表記ページです。販売価格、支払方法、返金可否などを確認できます。"
     />
     <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/runtime-config.js?v=20260502-1"></script>
+    <script defer src="/assets/legal-page.js?v=20260502-1"></script>
   </head>
   <body>
     <div class="site-shell">
       <header class="topbar">
         <a class="brand" href="/">しけん準備室</a>
         <nav class="topnav">
-          <a href="/">LP</a>
-          <a href="/premium/">3級プレミアム版の案内</a>
-          <a href="/premium/ready/">購入前チェック</a>
+          <a href="/">トップ</a>
+          <a href="/premium/">3級プレミアム版の内容</a>
+          <a href="/premium/ready/">購入前の確認</a>
         </nav>
       </header>
 
@@ -29,22 +31,23 @@
             プレミアム版の購入前に確認できるよう、販売条件に関する情報をまとめています。価格、提供時期、返金条件などの基本事項をこのページで案内します。
           </p>
           <p>
-            サービス名は「しけん準備室 知財3級対策」、運営屋号は「しけん準備室」、販売事業者名は「佐々木隆司」です。
+            サービス名は「<span data-service-name>しけん準備室 知財3級対策</span>」、運営屋号は「<span data-operator-trade-name>しけん準備室</span>」、販売事業者名は「<span data-operator-name>佐々木隆司</span>」です。
           </p>
-          <p>施行日: 2026/5/3</p>
+          <p>施行日: <span data-legal-effective-date>2026/5/3</span></p>
 
           <div class="feature-preview-grid">
             <article class="preview-card">
               <h3>販売事業者名</h3>
-              <p>佐々木隆司</p>
+              <p data-operator-name>佐々木隆司</p>
             </article>
             <article class="preview-card">
               <h3>運営屋号</h3>
-              <p>しけん準備室</p>
+              <p data-operator-trade-name>しけん準備室</p>
             </article>
             <article class="preview-card">
               <h3>問い合わせ窓口</h3>
               <p><a class="text-link" href="/contact/">お問い合わせフォーム</a></p>
+              <p class="fineprint hidden" data-support-email-note></p>
             </article>
             <article class="preview-card">
               <h3>所在地・電話番号</h3>
@@ -55,7 +58,7 @@
           <div class="feature-preview-grid">
             <article class="preview-card">
               <h3>販売価格</h3>
-              <p>3級プレミアム版 1,200円です。追加料金はありません。</p>
+              <p data-premium-price-text>3級プレミアム版 1,200円 / 追加月額料金なし</p>
             </article>
             <article class="preview-card">
               <h3>支払方法</h3>
@@ -75,9 +78,10 @@
             <p class="section-kicker">お問い合わせ</p>
             <h2>購入前後の問い合わせ窓口</h2>
             <p>
-              価格、購入状態、返金やキャンセルの相談は、<a class="text-link" href="/contact/">お問い合わせフォーム</a>
+              価格、購入状況、返金やキャンセルの相談は、<a class="text-link" href="/contact/">お問い合わせフォーム</a>
               から受け付けます。
             </p>
+            <p class="fineprint hidden" data-support-email-note></p>
           </section>
         </section>
       </main>

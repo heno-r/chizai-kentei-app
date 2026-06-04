@@ -24,6 +24,7 @@ if exist "%TSC_CMD%" (
   copy /y "%~dp0build\app\app.js" "%~dp0app\app.js" >nul
   copy /y "%~dp0build\app\auth-client.js" "%~dp0app\auth-client.js" >nul
   copy /y "%~dp0build\assets\diagnosis.js" "%~dp0assets\diagnosis.js" >nul
+  copy /y "%~dp0build\assets\legal-page.js" "%~dp0assets\legal-page.js" >nul
   copy /y "%~dp0build\assets\landing-page.js" "%~dp0assets\landing-page.js" >nul
   copy /y "%~dp0build\auth\login-page.js" "%~dp0login\login-page.js" >nul
   copy /y "%~dp0build\contact\contact-page.js" "%~dp0contact\contact-page.js" >nul

@@ -13,6 +13,9 @@
 
 - [site/config/runtime-config.production.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\config\runtime-config.production.json)
 - [site/config/runtime-config.staging.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\config\runtime-config.staging.json)
+- 必要なら `site/config/runtime-config.production.local.json`
+  - ひな形: [site/config/runtime-config.production.local.example.json](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\site\config\runtime-config.production.local.example.json)
+  - Stripe の公開値や問い合わせ先をローカル上書きで差し込めます
 
 `runtimeConfig` の中に、公開フロントが参照する値をまとめます。
 
@@ -105,9 +108,49 @@ npx wrangler deploy --env staging
   - `[[env.staging.d1_databases]]`
   - `[[env.staging.r2_buckets]]`
 
+埋め終わったかの確認には、次のチェックを使えます。
+
+```powershell
+cd C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ
+powershell -ExecutionPolicy Bypass -File .\scripts\validate_staging_setup.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\validate_staging_setup.ps1 -EnvironmentName production
+```
+
+- 引数なし: `staging`
+- `-EnvironmentName production`: 本番設定の不足確認
+
 ## 7. 運用の考え方
 
 - `main` + 本番 Pages + 本番 Worker を本番系
 - `staging` 用 Pages プロジェクト + `wrangler --env staging` を検証系
 - Stripe は staging では `test` を維持
 - `purchaseEnabled` は staging で必要になるまで `false` でもよい
+
+## 8. staging で購入導線を止めたまま確認するとき
+
+購入受付をまだ開けない段階では、次の手順書を使います。
+
+- [docs/staging_purchase_disabled_checklist.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\staging_purchase_disabled_checklist.md)
+
+このチェックでは、`purchaseEnabled: false` のまま
+
+- `/app/`
+- `/premium/`
+- `/premium/ready/`
+- `/login/`
+
+の見え方が不自然でないかを確認します。
+
+## 9. 本番反映前に staging で文言・導線確認するとき
+
+購入受付の有無にかかわらず、本番へ出す前に staging で全体の文言と導線を確認するときは次を使います。
+
+- [docs/staging_pre_release_flow.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\staging_pre_release_flow.md)
+
+このフローでは、
+
+- 未ログイン
+- ログイン済み未購入
+- 購入済み相当
+
+の順でページを見て、導線と文言の違和感を潰します。

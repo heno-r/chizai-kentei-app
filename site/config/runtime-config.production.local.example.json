@@ -1,0 +1,7 @@
+{
+  "runtimeConfig": {
+    "stripePublishableKey": "pk_live_replace_me",
+    "stripePriceId": "price_replace_me",
+    "supportEmail": "support@example.com"
+  }
+}

@@ -10,6 +10,10 @@ interface AppRuntimeConfig {
   premiumGuidePath?: string;
   premiumPurchasePath?: string;
   premiumPriceText?: string;
+  serviceName?: string;
+  operatorTradeName?: string;
+  operatorName?: string;
+  legalEffectiveDate?: string;
   loginPath?: string;
   appEntryPath?: string;
   purchaseEnabled?: boolean;
@@ -22,7 +26,15 @@ interface AppRuntimeConfig {
 
 interface LicenseStatusResponse {
   signed_in: boolean;
-  purchase_state?: "not_started" | "in_checkout" | "paid_pending_entitlement" | "entitled";
+  purchase_state?:
+    | "not_started"
+    | "in_checkout"
+    | "paid_pending_entitlement"
+    | "entitled"
+    | "refunded"
+    | "cancelled"
+    | "expired"
+    | "revoked";
   active_plan: "free" | "premium";
   user?: {
     user_id: string;

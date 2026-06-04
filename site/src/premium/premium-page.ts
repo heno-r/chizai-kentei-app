@@ -22,6 +22,16 @@
     return runtimeConfig.premiumPriceText || "3級プレミアム版 1,200円 / 追加月額料金なし";
   }
 
+  function isPurchaseReady(): boolean {
+    if (runtimeConfig.purchaseEnabled === false) {
+      return false;
+    }
+    if (runtimeConfig.checkoutProvider !== "stripe") {
+      return true;
+    }
+    return Boolean(String(runtimeConfig.stripePublishableKey || "").trim() && String(runtimeConfig.stripePriceId || "").trim());
+  }
+
   function showMessage(target: HTMLElement | null, text: string): void {
     if (!target) return;
     target.textContent = text;
@@ -37,13 +47,16 @@
   });
 
   purchaseReadyButton?.addEventListener("click", () => {
+    const purchaseReady = isPurchaseReady();
     showMessage(
       purchaseMessage,
-      `購入前の確認ページへ移動します。価格や流れを確認したあと、そのまま 3級プレミアム版 (${getPremiumPriceText()}) の購入手続きへ進めます。`,
+      purchaseReady
+        ? `購入前の確認ページへ移動します。価格や流れを確認したあと、そのまま 3級プレミアム版 (${getPremiumPriceText()}) の購入手続きへ進めます。`
+        : "現在はプレミアム版の内容確認を中心に案内しています。購入受付の準備が整い次第、このページから手続きへ進めます。",
     );
     purchaseMessage?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     window.setTimeout(() => {
-      window.location.href = getPremiumPurchasePath();
+      window.location.href = purchaseReady ? getPremiumPurchasePath() : getPremiumGuidePath();
     }, 250);
   });
 

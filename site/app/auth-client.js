@@ -288,6 +288,12 @@
             catch {
                 // ignore json parse failure
             }
+            if (message.includes("PUBLIC_SITE_URL is not configured") ||
+                message.includes("STRIPE_SECRET_KEY is not configured") ||
+                message.includes("STRIPE_PRICE_ID") ||
+                message.includes("stripe request failed")) {
+                throw new Error("現在は購入受付の準備中です。時間をおいてから、もう一度ご確認ください。");
+            }
             throw new Error(message);
         }
         return response.json();

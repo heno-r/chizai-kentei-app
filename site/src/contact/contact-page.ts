@@ -3,6 +3,7 @@
   const form = document.getElementById("contact-form") as HTMLFormElement | null;
   const submitButton = document.getElementById("contact-submit-button") as HTMLButtonElement | null;
   const statusMessage = document.getElementById("contact-status-message") as HTMLElement | null;
+  const supportEmailNote = document.getElementById("support-email-note") as HTMLElement | null;
 
   function buildApiUrl(path: string): string {
     const baseUrl = (runtimeConfig.secureApiBaseUrl || "").replace(/\/+$/, "");
@@ -18,15 +19,37 @@
     statusMessage.classList.toggle("is-error", isError);
   }
 
+  function getSupportEmail(): string | null {
+    const value = String(runtimeConfig.supportEmail || "").trim();
+    if (!value || /example\.com/i.test(value)) {
+      return null;
+    }
+    return value;
+  }
+
+  function renderSupportEmailNote(): void {
+    if (!supportEmailNote) {
+      return;
+    }
+    const supportEmail = getSupportEmail();
+    if (!supportEmail) {
+      supportEmailNote.classList.add("hidden");
+      supportEmailNote.textContent = "";
+      return;
+    }
+    supportEmailNote.textContent = `必要に応じて ${supportEmail} から返信することがあります。受信設定をご確認ください。`;
+    supportEmailNote.classList.remove("hidden");
+  }
+
   function formatContactError(error: unknown): string {
     const message =
       error instanceof Error ? error.message : typeof error === "string" ? error : "unknown_error";
 
     if (message.includes("request failed: 404")) {
-      return "お問い合わせ送信の公開設定がまだ反映されていません。Worker を再デプロイしてからもう一度お試しください。";
+      return "ただいまお問い合わせを受け付けられません。時間をおいてからもう一度お試しください。";
     }
     if (message.includes("no such table: contact_messages")) {
-      return "お問い合わせ保存用のテーブルがまだ D1 に入っていません。D1 の schema 反映後にもう一度お試しください。";
+      return "ただいまお問い合わせの保存処理を利用できません。時間をおいてからもう一度お試しください。";
     }
     if (message.includes("name, reply_email, and message are required")) {
       return "お名前、返信先メールアドレス、お問い合わせ内容を入力してください。";
@@ -38,10 +61,10 @@
       return "お問い合わせ内容は 10 文字以上で入力してください。";
     }
     if (message.includes("Failed to fetch")) {
-      return "送信先に接続できませんでした。Worker のデプロイ状態とネットワーク接続を確認してください。";
+      return "送信先に接続できませんでした。通信環境を確認してから、もう一度お試しください。";
     }
 
-    return `送信に失敗しました: ${message}`;
+    return "送信に失敗しました。時間をおいてからもう一度お試しください。";
   }
 
   async function submitContactForm(event: Event): Promise<void> {
@@ -95,4 +118,6 @@
   form?.addEventListener("submit", (event) => {
     void submitContactForm(event);
   });
+
+  renderSupportEmailNote();
 })();

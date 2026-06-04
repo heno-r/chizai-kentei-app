@@ -50,6 +50,7 @@
 - [x] `premium_plan_registry.json` に登録した set_id が manifest に出る
 - [x] 返金時に `Stripe -> D1 -> 無料版へ戻る` の流れを確認できる
 - [x] `review_tool` から本番問い合わせの確認と状態更新ができる
+- [x] 問い合わせ往復確認と CLI での返信準備手順がある
 
 ## 残りの優先確認
 
@@ -60,6 +61,7 @@
 - [x] [docs/service_naming_guidance.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\service_naming_guidance.md) に沿って公開名を確定する
 - [x] [docs/refund_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\refund_operation_steps.md) に返金時の内部運用手順をまとめる
 - [x] [docs/contact_operation_steps.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\contact_operation_steps.md) に問い合わせ対応手順をまとめる
+- [x] [docs/launch_week_operations.md](C:\Users\henoh\OneDrive\Dev\知財検定学習アプリ\docs\launch_week_operations.md) に公開直後 1 週間の運用メモをまとめる
 
 ## 固定ページの補足
 

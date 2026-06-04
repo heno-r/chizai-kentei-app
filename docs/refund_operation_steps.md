@@ -72,24 +72,31 @@ ORDER BY updated_at DESC;
 
 ## 5. D1 でプレミアム権限を外す
 
-先に `entitlements` を消します。
+まず `orders` を `refunded` に更新します。
 
 ```sql
-DELETE FROM entitlements
-WHERE user_id = 'USERS_ID_HERE';
+UPDATE orders
+SET order_status = 'refunded',
+    updated_at = datetime('now')
+WHERE user_id = 'USERS_ID_HERE'
+  AND product_code = 'grade3_premium';
 ```
 
-次に `orders` を消します。
+次に `entitlements` を `revoked` に更新します。
 
 ```sql
-DELETE FROM orders
-WHERE user_id = 'USERS_ID_HERE';
+UPDATE entitlements
+SET status = 'revoked',
+    updated_at = datetime('now')
+WHERE user_id = 'USERS_ID_HERE'
+  AND plan_code = 'premium';
 ```
 
 補足:
 
 - `users` 自体は消さなくてよい
-- やりたいのは「アカウント削除」ではなく「購入状態リセット」
+- やりたいのは「アカウント削除」ではなく「返金後に無料版へ戻すこと」
+- `orders / entitlements` を残しておくと、アプリ画面でも返金後の状態を確認しやすい
 
 ## 6. 消えたか確認する
 
@@ -105,7 +112,7 @@ FROM orders
 WHERE user_id = 'USERS_ID_HERE';
 ```
 
-両方 0 件ならリセット完了です。
+`orders.order_status = refunded` と `entitlements.status = revoked` が確認できれば更新完了です。
 
 ## 7. アプリ側で確認する
 
@@ -117,7 +124,7 @@ WHERE user_id = 'USERS_ID_HERE';
 
 - 無料版として表示される
 - プレミアム機能のロックが戻る
-- `無料50問 + 追加0問` 側に戻る
+- `返金後は無料版に戻っています` などの案内が見える
 
 ## 8. 問い合わせ対応メモ
 
