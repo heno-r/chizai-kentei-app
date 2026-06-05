@@ -6,6 +6,10 @@
         if (baseUrl) {
             return baseUrl;
         }
+        const secureBaseUrl = (config.secureApiBaseUrl || "").replace(/\/$/, "");
+        if (secureBaseUrl) {
+            return secureBaseUrl;
+        }
         if (typeof window !== "undefined" && window.location?.origin) {
             return window.location.origin.replace(/\/$/, "");
         }
