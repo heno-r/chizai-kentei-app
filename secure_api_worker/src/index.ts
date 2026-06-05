@@ -232,6 +232,27 @@ export default {
         });
       }
 
+      if (request.method === "GET" && url.pathname === "/api/public/catalog") {
+        const activePlan = url.searchParams.get("plan") || "free";
+        const sets = await buildPublicCatalog(env, activePlan);
+        return jsonResponse(request, { sets });
+      }
+
+      if (request.method === "GET" && url.pathname === "/api/public/questions") {
+        const activePlan = url.searchParams.get("plan") || "free";
+        const setId = url.searchParams.get("set_id");
+        try {
+          const payload = await buildPublicQuestionPayload(env, setId, activePlan);
+          return jsonResponse(request, payload);
+        } catch (error) {
+          return jsonResponse(
+            request,
+            { error: error instanceof Error ? error.message : "not_found" },
+            404,
+          );
+        }
+      }
+
       if (request.method === "POST" && url.pathname === "/api/public/auth/signin") {
         const startedAt = Date.now();
         const payload = (await request.json()) as AuthCredentialPayload;
@@ -1401,6 +1422,197 @@ function parsePremiumPlanRegistry(env: Env): PremiumPlanRegistry {
 function getPremiumPlanConfig(env: Env, planCode: string): PremiumPlanConfig {
   const registry = parsePremiumPlanRegistry(env);
   return registry.plans?.[planCode] || {};
+}
+
+function normalizeAccessPlan(plan: string | null | undefined): "free" | "premium" {
+  return plan === "premium" || plan === "standard" ? "premium" : "free";
+}
+
+function canAccessRequiredPlan(requiredPlan: string | null | undefined, activePlan: string): boolean {
+  const normalizedRequiredPlan = normalizeAccessPlan(requiredPlan);
+  const normalizedActivePlan = normalizeAccessPlan(activePlan);
+  return normalizedRequiredPlan === "free" || normalizedActivePlan === "premium";
+}
+
+function parseJsonArray<T = unknown>(value: unknown): T[] {
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+  if (typeof value !== "string" || !value.trim()) {
+    return [];
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function extractReferenceLinks(sourceSnapshotJson: unknown): Array<Record<string, string>> {
+  if (typeof sourceSnapshotJson !== "string" || !sourceSnapshotJson.trim()) {
+    return [];
+  }
+
+  try {
+    const snapshot = JSON.parse(sourceSnapshotJson) as { sources?: Array<Record<string, unknown>> };
+    const rawSources = Array.isArray(snapshot.sources) ? snapshot.sources : [];
+    const seenUrls = new Set<string>();
+    const links: Array<Record<string, string>> = [];
+    for (const source of rawSources) {
+      if (!source || typeof source !== "object") {
+        continue;
+      }
+      const url = String(source.url_or_location || "").trim();
+      if (!/^https?:\/\//.test(url) || seenUrls.has(url)) {
+        continue;
+      }
+      seenUrls.add(url);
+      links.push({
+        title: String(source.title || source.publisher || "参考資料").trim(),
+        publisher: String(source.publisher || "").trim(),
+        section: String(source.section || "").trim(),
+        url,
+      });
+    }
+    return links;
+  } catch {
+    return [];
+  }
+}
+
+function buildQuestionPayloadFromRows(
+  setRow: Record<string, unknown>,
+  rows: Array<Record<string, unknown>>,
+): Record<string, unknown> {
+  const questions = rows.map((row) => ({
+    id: row.question_id,
+    level: row.level,
+    category: row.category,
+    subtopic: row.subtopic,
+    prompt: row.prompt,
+    options: parseJsonArray<string>(row.options_json),
+    answer_index: row.answer_index,
+    explanation: row.explanation,
+    option_explanations: parseJsonArray<string>(row.option_explanations_json),
+    memory_tip: row.memory_tip || "",
+    reference_links: extractReferenceLinks(row.source_snapshot_json),
+  }));
+
+  return {
+    version: String(setRow.published_at || ""),
+    set_id: String(setRow.set_id || ""),
+    set_name: String(setRow.label || ""),
+    set_description: String(setRow.short_description || ""),
+    set_tag: String(setRow.audience_tag || ""),
+    required_plan: normalizeAccessPlan(String(setRow.required_plan || "free")),
+    question_count: questions.length,
+    questions,
+  };
+}
+
+async function buildPublicCatalog(env: Env, activePlan: string): Promise<Array<Record<string, unknown>>> {
+  const normalizedActivePlan = normalizeAccessPlan(activePlan);
+  const result = await env.LICENSE_DB.prepare(
+    `
+    SELECT
+      qs.set_id,
+      qs.label,
+      qs.short_description,
+      qs.audience_tag,
+      qs.level,
+      qs.visibility,
+      qs.required_plan,
+      qs.published_at,
+      COUNT(qsi.question_id) AS question_count
+    FROM question_sets qs
+    LEFT JOIN question_set_items qsi ON qsi.set_id = qs.set_id
+    WHERE qs.visibility = 'public' AND qs.is_active = 1
+    GROUP BY
+      qs.set_id,
+      qs.label,
+      qs.short_description,
+      qs.audience_tag,
+      qs.level,
+      qs.visibility,
+      qs.required_plan,
+      qs.published_at
+    ORDER BY qs.published_at DESC, qs.set_id
+    `,
+  ).all<Record<string, unknown>>();
+
+  return (result.results || []).filter((item) =>
+    canAccessRequiredPlan(String(item.required_plan || "free"), normalizedActivePlan),
+  );
+}
+
+async function buildPublicQuestionPayload(
+  env: Env,
+  setId: string | null,
+  activePlan: string,
+): Promise<Record<string, unknown>> {
+  const normalizedActivePlan = normalizeAccessPlan(activePlan);
+  let resolvedSetId = setId ? String(setId) : "";
+
+  if (!resolvedSetId) {
+    const latest = await env.LICENSE_DB.prepare(
+      `
+      SELECT set_id, required_plan
+      FROM question_sets
+      WHERE visibility = 'public' AND is_active = 1
+      ORDER BY published_at DESC, set_id
+      `,
+    ).all<Record<string, unknown>>();
+    const firstVisible = (latest.results || []).find((item) =>
+      canAccessRequiredPlan(String(item.required_plan || "free"), normalizedActivePlan),
+    );
+    if (!firstVisible?.set_id) {
+      throw new Error("No public question set found.");
+    }
+    resolvedSetId = String(firstVisible.set_id);
+  }
+
+  const setRow = await env.LICENSE_DB.prepare(
+    `
+    SELECT set_id, label, short_description, audience_tag, level, published_at, required_plan
+    FROM question_sets
+    WHERE set_id = ?
+      AND visibility = 'public'
+      AND is_active = 1
+    LIMIT 1
+    `,
+  )
+    .bind(resolvedSetId)
+    .first<Record<string, unknown>>();
+
+  if (!setRow || !canAccessRequiredPlan(String(setRow.required_plan || "free"), normalizedActivePlan)) {
+    throw new Error(`Public question set not found: ${resolvedSetId}`);
+  }
+
+  const rows = await env.LICENSE_DB.prepare(
+    `
+    SELECT
+      pq.question_id,
+      pq.level,
+      pq.category,
+      pq.subtopic,
+      pq.prompt,
+      pq.options_json,
+      pq.answer_index,
+      pq.explanation,
+      pq.option_explanations_json,
+      pq.memory_tip,
+      pq.source_snapshot_json
+    FROM question_set_items qsi
+    JOIN published_questions pq ON pq.question_id = qsi.question_id
+    WHERE qsi.set_id = ?
+    ORDER BY qsi.sort_order ASC
+    `,
+  )
+    .bind(resolvedSetId)
+    .all<Record<string, unknown>>();
+
+  return buildQuestionPayloadFromRows(setRow, rows.results || []);
 }
 
 async function buildPremiumManifest(
