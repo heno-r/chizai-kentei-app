@@ -37,3 +37,10 @@ quiz_app/data/questions_first_release_5.json
 *.sqlite
 *.sqlite3
 *.db
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
